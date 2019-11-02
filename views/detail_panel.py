@@ -1,5 +1,6 @@
 import wx
-import wx.grid
+from ObjectListView import ObjectListView, ColumnDefn, Filter
+from utils.strutils import getWidestTextDimension, monthPrettify
 
 
 class DetailPanel(wx.Panel):
@@ -7,6 +8,18 @@ class DetailPanel(wx.Panel):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(wx.Colour(79, 114, 142))
 
+        self.olv = None
+
+        tbPanel = self.buildToolbarPanel()
+        lstPanel = self.buildListPanel(data)
+
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        sizer.Add(tbPanel, 0, wx.ALL | wx.EXPAND, 5)
+        sizer.Add(lstPanel, 0, wx.ALL | wx.EXPAND, 5)
+
+        self.SetSizerAndFit(sizer)
+
+    def buildToolbarPanel(self):
         tbPanel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
@@ -26,26 +39,42 @@ class DetailPanel(wx.Panel):
         tbSizer.Add(saveBtn, 0, wx.ALL, 5)
         tbPanel.SetSizer(tbSizer)
 
-        grdPanel = wx.Panel(
-            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
+        return tbPanel
+
+    def buildListPanel(self, data):
+        listPanel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
+        listPanel.SetBackgroundColour(wx.Colour(37, 63, 91))
+
+        olv = ObjectListView(listPanel, wx.ID_ANY,
+                             size=wx.Size(-1, 550),
+                             style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+
+        font = olv.GetFont()
+        empWidth = getWidestTextDimension(
+            [x['employee'] for x in data],
+            font.GetFaceName(), font.GetPointSize()
         )
-        grdPanel.SetBackgroundColour(wx.Colour(116, 65, 43))
-        self.grid = wx.grid.Grid(grdPanel, wx.ID_ANY)
-        self.grid.CreateGrid(len(data), 7)
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.on_cell_click)
-        self.load(data)
-        self.grid.HideCol(0)
-        self.grid.HideCol(1)
-        grdSizer = wx.BoxSizer(wx.HORIZONTAL)
-        grdSizer.Add(self.grid, 0, wx.ALL, 5)
-        grdPanel.SetSizer(grdSizer)
 
-        sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(tbPanel, 0, wx.ALL | wx.EXPAND, 5)
-        sizer.Add(grdPanel, 0, wx.ALL, 5)
-        self.SetSizer(sizer)
+        olv.SetColumns([
+            ColumnDefn('Employee', 'left', 200, 'employee'),
+            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=monthPrettify),
+            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=monthPrettify),
+            ColumnDefn('Effort', 'left', 100, 'effort'),
+        ])
 
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.on_cell_click)
+        # olv.Bind(wx.EVT_LEFT_DOWN, self.left_click)
+        # olv.Bind(wx.EVT_RIGHT_DOWN, self.right_click)
+        # olv.Bind(wx.EVT_LIST_ITEM_SELECTED, self.selected)
+
+        olv.SetObjects(data)
+        self.olv = olv
+
+        lstSizer = wx.BoxSizer(wx.HORIZONTAL)
+        lstSizer.Add(olv, 1, wx.ALL | wx.EXPAND, 5)
+
+        listPanel.SetSizer(lstSizer)
+
+        return listPanel
 
     def load(self, data):
         self.grid.ClearGrid()

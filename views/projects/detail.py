@@ -4,8 +4,8 @@ from views.detail_panel import DetailPanel
 
 
 class PrjDetailDlg(wx.Dialog):
-    def __init__(self, parent, win_id, title, prj, asns):
-        wx.Dialog.__init__(self, parent, win_id, title, size=(900, 500))
+    def __init__(self, parent, winId, title, prj, asns):
+        wx.Dialog.__init__(self, parent, winId, title, size=(1200, 500))
 
         self.frmPanel = FormPanel(self, prj)
         self.dtlPanel = DetailPanel(self, asns)
