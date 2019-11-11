@@ -1,20 +1,20 @@
 import wx
+import models.globals as gv
 from views.projects.prj_tab import PrjTab
 from views.employees.emp_tab import EmpTab
 from views.efforts.eff_tab import EffTab
 
 
 class MainWindow(wx.Frame):
-    def __init__(self, prjs, emps, asns):
+    def __init__(self):
         wx.Frame.__init__(self, None, title='allocat', size=(1000, 700))
+        panel = wx.Panel(self)
+        layout = wx.BoxSizer()
 
-        p = wx.Panel(self)
-        nb = wx.Notebook(p)
+        notebook = wx.Notebook(panel)
+        notebook.AddPage(PrjTab(notebook, gv.prjRex), 'Projects')
+        notebook.AddPage(EmpTab(notebook), 'Employees')
+        notebook.AddPage(EffTab(notebook), 'Scoreboard')
+        layout.Add(notebook, 1, wx.EXPAND)
 
-        nb.AddPage(PrjTab(nb, prjs), 'Projects')
-        nb.AddPage(EmpTab(nb), 'Employees')
-        nb.AddPage(EffTab(nb), 'Scoreboard')
-
-        sizer = wx.BoxSizer()
-        sizer.Add(nb, 1, wx.EXPAND)
-        p.SetSizer(sizer)
+        panel.SetSizer(layout)
