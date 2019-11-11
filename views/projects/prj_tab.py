@@ -3,11 +3,11 @@ from ObjectListView import ObjectListView, ColumnDefn, Filter
 from views.projects.detail_dlg import PrjDetailDlg
 from models.project import Project
 import models.globals as gbl
-from utils.strutils import getWidestTextDimension, monthPrettify
+from utils.strutils import getWidestTextExtent, monthPrettify
 
 
 class PrjTab(wx.Panel):
-    def __init__(self, parent, data):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.PANEL_BG_COLOR)
         layout = wx.BoxSizer(wx.VERTICAL)
@@ -17,7 +17,7 @@ class PrjTab(wx.Panel):
         self.srchValue = ''
 
         tbPanel = self.buildToolbarPanel()
-        lstPanel = self.buildListPanel(data)
+        lstPanel = self.buildListPanel(gbl.prjRex)
 
         layout.Add(tbPanel, 0, wx.EXPAND | wx.ALL, 5)
         layout.Add(lstPanel, 0, wx.EXPAND | wx.ALL, 5)
@@ -84,14 +84,8 @@ class PrjTab(wx.Panel):
                                   style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         font = self.olv.GetFont()
-        nickWidth = getWidestTextDimension(
-            [x['nickname'] for x in data],
-            font.GetFaceName(), font.GetPointSize()
-        )
-        nameWidth = getWidestTextDimension(
-            [x['name'] for x in data],
-            font.GetFaceName(), font.GetPointSize()
-        )
+        nickWidth = getWidestTextExtent(font, [x['nickname'] for x in data])
+        nameWidth = getWidestTextExtent(font, [x['name'] for x in data])
 
         self.olv.SetColumns([
             ColumnDefn('Nickname', 'left', nickWidth, 'nickname'),

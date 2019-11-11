@@ -18,18 +18,18 @@ class Employee(object):
     @staticmethod
     def getAsns(empid, month=None):
         sql = ("SELECT a.id AS id, "
-               "a.employee_id AS employee_id, "
+               "a.project_id AS project_id, "
                "a.first_month AS first_month, "
                "a.last_month AS last_month, "
                "a.effort AS effort, "
                "a.notes AS notes, "
-               "e.name AS employee "
+               "p.nickname AS project "
                "FROM assignments AS a "
-               "JOIN employees AS e ON a.employee_id= e.id "
-               "WHERE a.project_id=? ")
-        vals = [prjid]
+               "JOIN projects AS p ON a.project_id= p.id "
+               "WHERE a.employee_id=? ")
+        vals = [empid]
         if month:
             sql += "AND a.last_month >= ? "
             vals += [month]
-        sql += "ORDER BY e.name;"
+        sql += "ORDER BY p.nickname;"
         return Dao.execute(sql, vals)

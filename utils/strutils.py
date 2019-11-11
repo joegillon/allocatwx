@@ -1,21 +1,24 @@
-# import ctypes
-from PIL import ImageFont
+import wx
 
 
-def get_text_dimensions(text, fontname, points):
-    fontname = fontname.replace(' ', '').lower()
-    font = ImageFont.truetype(fontname + '.ttf', points)
-    return font.getsize(text)
-
-
-def getWidestTextDimension(values, fontname, points):
-    result = (0, 0)
+def getWidestTextExtent(font, values):
+    dc = wx.ScreenDC()
+    dc.SetFont(font)
+    result = 0
     for value in values:
-        dim = get_text_dimensions(value, fontname, points)
-        if dim[0] > result[0]:
+        dim = dc.GetTextExtent(value)[0]
+        if dim > result:
             result = dim
-    return result[0]
+    return result + (result * .1)
 
 
 def monthPrettify(month):
+    if not month:
+        return ''
     return month[2:] + '/' + month[0:2]
+
+
+def displayValue(obj, attr):
+    if not obj or not obj[attr]:
+        return ''
+    return obj[attr]

@@ -12,7 +12,7 @@ class MainWindow(wx.Frame):
         layout = wx.BoxSizer()
 
         notebook = wx.Notebook(panel)
-        notebook.AddPage(PrjTab(notebook, gv.prjRex), 'Projects')
+        notebook.AddPage(PrjTab(notebook), 'Projects')
         notebook.AddPage(EmpTab(notebook), 'Employees')
         notebook.AddPage(EffTab(notebook), 'Scoreboard')
         layout.Add(notebook, 1, wx.EXPAND)

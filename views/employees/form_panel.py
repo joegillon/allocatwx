@@ -2,13 +2,13 @@ import wx
 from utils.strutils import monthPrettify, displayValue
 
 
-class PrjFormPanel(wx.Panel):
-    def __init__(self, parent, prj=None):
+class EmpFormPanel(wx.Panel):
+    def __init__(self, parent, emp=None):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(wx.Colour(116, 65, 43))
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.prj = prj
+        self.emp = emp
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel()
@@ -25,10 +25,10 @@ class PrjFormPanel(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(190, 130, 96))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Project')
+        dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Employee')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropClick)
 
-        saveBtn = wx.Button(panel, wx.ID_ANY, label='Save Project')
+        saveBtn = wx.Button(panel, wx.ID_ANY, label='Save Employee')
         saveBtn.Bind(wx.EVT_BUTTON, self.onSaveClick)
 
         layout.Add(dropBtn, 0, wx.ALL, 5)
@@ -47,40 +47,38 @@ class PrjFormPanel(wx.Panel):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblName = wx.StaticText(panel, wx.ID_ANY, 'Project Name: ')
+        lblName = wx.StaticText(panel, wx.ID_ANY, 'Employee Name: ')
         txtName = wx.TextCtrl(panel, wx.ID_ANY,
-                              displayValue(self.prj, 'name'), size=(500, -1))
+                              displayValue(self.emp, 'name'), size=(500, -1))
         nameLayout.Add(lblName, 0, wx.ALL, 5)
         nameLayout.Add(txtName, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(nameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
-        nicknameLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblNickname = wx.StaticText(panel, wx.ID_ANY, 'Nickname: ')
-        txtNickname = wx.TextCtrl(panel, wx.ID_ANY,
-                                  displayValue(self.prj, 'nickname'), size=(400, -1))
-        nicknameLayout.Add(lblNickname, 0, wx.ALL, 5)
-        nicknameLayout.Add(txtNickname, 0, wx.ALL, 5)
-        layout.Add(nicknameLayout, 0, wx.ALL | wx.EXPAND, 5)
+        gsfLayout = wx.BoxSizer(wx.HORIZONTAL)
+        lblGrade = wx.StaticText(panel, wx.ID_ANY, 'Grade: ')
+        txtGrade = wx.TextCtrl(panel, wx.ID_ANY,
+                               str(displayValue(self.emp, 'grade')), size=(50, -1))
+        gsfLayout.Add(lblGrade, 0, wx.ALL, 5)
+        gsfLayout.Add(txtGrade, 0, wx.ALL, 5)
+        layout.Add(gsfLayout, 0, wx.ALL | wx.EXPAND, 5)
 
-        intervalLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: ')
-        txtFirstMonth = wx.TextCtrl(panel, wx.ID_ANY,
-                                    monthPrettify(displayValue(self.prj, 'first_month')),
-                                    size=(50, -1))
-        intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
-        intervalLayout.Add(txtFirstMonth, 0, wx.ALL, 5)
+        lblStep = wx.StaticText(panel, wx.ID_ANY, 'Step: ')
+        txtStep = wx.TextCtrl(panel, wx.ID_ANY,
+                              str(displayValue(self.emp, 'step')), size=(50, -1))
+        gsfLayout.Add(lblStep, 0, wx.ALL, 5)
+        gsfLayout.Add(txtStep, 0, wx.ALL, 5)
 
-        lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: ')
-        txtLastMonth = wx.TextCtrl(panel, wx.ID_ANY,
-                                   monthPrettify(displayValue(self.prj, 'last_month')),
-                                   size=(50, -1))
-        intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
-        intervalLayout.Add(txtLastMonth, 0, wx.ALL, 5)
-        layout.Add(intervalLayout, 0, wx.ALL, 5)
+        lblFte = wx.StaticText(panel, wx.ID_ANY, 'FTE: ')
+        txtFte = wx.TextCtrl(panel, wx.ID_ANY,
+                             str(displayValue(self.emp, 'fte')), size=(50, -1))
+        gsfLayout.Add(lblFte, 0, wx.ALL, 5)
+        gsfLayout.Add(txtFte, 0, wx.ALL, 5)
+        layout.Add(gsfLayout, 0, wx.ALL, 5)
 
         notesLayout = wx.BoxSizer(wx.VERTICAL)
         lblNotes = wx.StaticText(panel, wx.ID_ANY, 'Notes:')
-        txtNotes = wx.TextCtrl(panel, wx.ID_ANY, displayValue(self.prj, 'notes'),
+        txtNotes = wx.TextCtrl(panel, wx.ID_ANY,
+                               displayValue(self.emp, 'notes'),
                                style=wx.TE_MULTILINE, size=(500, 200))
         notesLayout.Add(lblNotes, 0, wx.ALL, 5)
         notesLayout.Add(txtNotes, 0, wx.ALL, 5)
@@ -91,12 +89,12 @@ class PrjFormPanel(wx.Panel):
         return panel
 
     def onDropClick(self, event):
-        dlg = wx.MessageDialog(self, 'Drop project?', 'Just making sure',
+        dlg = wx.MessageDialog(self, 'Drop employee?', 'Just making sure',
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
             print('drop ' + str(self.prj['id']))
 
     def onSaveClick(self, event):
-        print('save ' + str(self.prj['id']))
+        print('save ' + str(self.emp['id']))
         self.Parent.dtlPanel.activateAddBtn()
