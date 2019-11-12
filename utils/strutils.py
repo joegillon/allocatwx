@@ -22,3 +22,7 @@ def displayValue(obj, attr):
     if not obj or not obj[attr]:
         return ''
     return obj[attr]
+
+
+def toYN(value):
+    return 'Y' if value else 'N'

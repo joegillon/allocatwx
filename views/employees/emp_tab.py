@@ -3,7 +3,8 @@ from ObjectListView import ObjectListView, ColumnDefn, Filter
 from views.employees.detail_dlg import EmpDetailDlg
 from models.employee import Employee
 import models.globals as gbl
-from utils.strutils import getWidestTextExtent, monthPrettify
+from utils.strutils import getWidestTextExtent, toYN
+from utils.ui_utils import getToolbarLabel
 
 
 class EmpTab(wx.Panel):
@@ -31,40 +32,41 @@ class EmpTab(wx.Panel):
         panel.SetBackgroundColour(gbl.TOOLBAR_BG_COLOR)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
-                       wx.FONTWEIGHT_BOLD)
-
         addBtn = wx.Button(panel, wx.ID_ANY, label='Add Employee',
                            pos=wx.DefaultPosition,
                            size=wx.DefaultSize,
                            style=0)
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
+        layout.Add(addBtn, 0, wx.ALL, 5)
 
         dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Employees')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
+        layout.Add(dropBtn, 0, wx.ALL, 5)
 
-        lblNameFltr = wx.StaticText(panel, wx.ID_ANY, 'Name:')
-        lblNameFltr.SetFont(font)
-        lblNameFltr.SetForegroundColour('white')
+        lblNameFltr = getToolbarLabel(panel, 'Name:')
+        layout.Add(lblNameFltr, 0, wx.ALL, 5)
+
         nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '', style=wx.TE_PROCESS_ENTER, name='nameFltr')
         nameFltr.ShowCancelButton(True)
         nameFltr.Bind(wx.EVT_CHAR, self.onFltr)
         nameFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
+        layout.Add(nameFltr, 0, wx.ALL, 5)
 
-        lblNotesFltr = wx.StaticText(panel, wx.ID_ANY, 'Notes')
-        lblNotesFltr.SetFont(font)
-        lblNotesFltr.SetForegroundColour('white')
+        lblNotesFltr = getToolbarLabel(panel, 'Notes')
+        layout.Add(lblNotesFltr, 0, wx.ALL, 5)
+
         notesFltr = wx.SearchCtrl(panel, wx.ID_ANY, style=wx.TE_PROCESS_ENTER, name='notesFltr')
         notesFltr.ShowCancelButton(True)
         notesFltr.Bind(wx.EVT_CHAR, self.onFltr)
         notesFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
-
-        layout.Add(addBtn, 0, wx.ALL, 5)
-        layout.Add(dropBtn, 0, wx.ALL, 5)
-        layout.Add(lblNameFltr, 0, wx.ALL, 5)
-        layout.Add(nameFltr, 0, wx.ALL, 5)
-        layout.Add(lblNotesFltr, 0, wx.ALL, 5)
         layout.Add(notesFltr, 0, wx.ALL, 5)
+
+        lblInvestigators = getToolbarLabel(panel, 'Investigators:')
+        layout.Add(lblInvestigators, 0, wx.ALL, 5)
+
+        chkInvestigators = wx.CheckBox(panel, wx.ID_ANY)
+        chkInvestigators.Bind(wx.EVT_CHECKBOX, self.onInvestigatorToggle)
+        layout.Add(chkInvestigators, 0, wx.ALL, 5)
 
         hlpBtn = gbl.getHelpBtn(panel)
         hlpBtn.Bind(wx.EVT_BUTTON, gbl.showListHelp)
@@ -92,7 +94,8 @@ class EmpTab(wx.Panel):
             ColumnDefn('Step', 'right', 100, 'step'),
             ColumnDefn('FTE', 'right', 100, 'fte'),
             ColumnDefn('Notes', 'left', 0, 'notes'),
-            ColumnDefn('Investigator', 'left', 0, 'investigator')
+            ColumnDefn('Investigator', 'right', 120, 'investigator',
+                       stringConverter=toYN)
         ])
 
         self.olv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
@@ -142,7 +145,7 @@ class EmpTab(wx.Panel):
             self.srchValue += c
         col = self.olv.columns[0:1]
         if event.EventObject.Parent.Name == 'notesFltr':
-            col = self.olv.columns[4:1]
+            col = self.olv.columns[4:5]
         self.olv.SetFilter(Filter.TextSearch(
             self.olv, columns=col, text=self.srchValue))
         self.olv.RepopulateList()
@@ -153,3 +156,11 @@ class EmpTab(wx.Panel):
         self.olv.SetFilter(None)
         self.olv.RepopulateList()
         self.srchValue = ''
+
+    def onInvestigatorToggle(self, event):
+        if event.Selection == 0:
+            self.olv.SetFilter(None)
+        else:
+            self.olv.SetFilter(Filter.TextSearch(
+                self.olv, columns=self.olv.columns[5:], text='Y'))
+        self.olv.RepopulateList()
