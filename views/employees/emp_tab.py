@@ -5,15 +5,15 @@ from models.employee import Employee
 import models.globals as gbl
 from utils.strutils import getWidestTextExtent, toYN
 from utils.ui_utils import getToolbarLabel
+import utils.buttons as btn_lib
 
 
 class EmpTab(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(gbl.PANEL_BG_COLOR)
+        self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        # Need properties for the filters
         self.olv = None
         self.srchValue = ''
 
@@ -29,21 +29,19 @@ class EmpTab(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
-        panel.SetBackgroundColour(gbl.TOOLBAR_BG_COLOR)
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        addBtn = wx.Button(panel, wx.ID_ANY, label='Add Employee',
-                           pos=wx.DefaultPosition,
-                           size=wx.DefaultSize,
-                           style=0)
+        addBtn = btn_lib.toolbar_button(panel, 'Add Employee')
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         layout.Add(addBtn, 0, wx.ALL, 5)
 
-        dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Employees')
+        dropBtn = btn_lib.toolbar_button(panel, 'Drop Employees')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
         lblNameFltr = getToolbarLabel(panel, 'Name:')
+        lblNameFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNameFltr, 0, wx.ALL, 5)
 
         nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '', style=wx.TE_PROCESS_ENTER, name='nameFltr')
@@ -53,6 +51,7 @@ class EmpTab(wx.Panel):
         layout.Add(nameFltr, 0, wx.ALL, 5)
 
         lblNotesFltr = getToolbarLabel(panel, 'Notes')
+        lblNotesFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNotesFltr, 0, wx.ALL, 5)
 
         notesFltr = wx.SearchCtrl(panel, wx.ID_ANY, style=wx.TE_PROCESS_ENTER, name='notesFltr')
@@ -78,7 +77,7 @@ class EmpTab(wx.Panel):
 
     def buildListPanel(self, data):
         panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
-        panel.SetBackgroundColour(gbl.LIST_BG_COLOR)
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
         self.olv = ObjectListView(panel, wx.ID_ANY,
@@ -86,10 +85,10 @@ class EmpTab(wx.Panel):
                                   style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         font = self.olv.GetFont()
-        nameWidth = getWidestTextExtent(font, [x['name'] for x in data])
+        gbl.EMP_NAME_WIDTH = getWidestTextExtent(font, [x['name'] for x in data])
 
         self.olv.SetColumns([
-            ColumnDefn('Name', 'left', nameWidth, 'name'),
+            ColumnDefn('Name', 'left', gbl.EMP_NAME_WIDTH , 'name'),
             ColumnDefn('Grade', 'right', 105, 'grade'),
             ColumnDefn('Step', 'right', 100, 'step'),
             ColumnDefn('FTE', 'right', 100, 'fte'),
@@ -100,6 +99,8 @@ class EmpTab(wx.Panel):
 
         self.olv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
         self.olv.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
+
+        self.olv.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
 
         self.olv.SetObjects(data)
 

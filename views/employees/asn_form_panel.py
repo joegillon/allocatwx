@@ -1,12 +1,13 @@
 import wx
 import models.globals as gbl
 from utils.strutils import displayValue, monthPrettify
+import utils.buttons as btn_lib
 
 
 class EmpAsnFormPanel(wx.Panel):
     def __init__(self, parent, empName, asn=None):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(wx.Colour(116, 65, 43))
+        self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
         self.asn = asn
@@ -28,13 +29,13 @@ class EmpAsnFormPanel(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
-        panel.SetBackgroundColour(wx.Colour(190, 130, 96))
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        saveBtn = wx.Button(panel, wx.ID_ANY, label='Save Assignment')
+        saveBtn = btn_lib.toolbar_button(panel, 'Save Assignment')
         saveBtn.Bind(wx.EVT_BUTTON, self.onSaveClick)
 
-        cancelBtn = wx.Button(panel, wx.ID_ANY, label='Cancel')
+        cancelBtn = btn_lib.toolbar_button(panel, 'Cancel')
         cancelBtn.Bind(wx.EVT_BUTTON, self.onCancelClick)
 
         layout.Add(saveBtn, 0, wx.ALL, 5)
@@ -48,7 +49,7 @@ class EmpAsnFormPanel(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, size=(-1, 375)
         )
-        panel.SetBackgroundColour(wx.Colour(215, 176, 149))
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.frmBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
         empLayout = wx.BoxSizer(wx.HORIZONTAL)

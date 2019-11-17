@@ -3,12 +3,13 @@ from ObjectListView import ObjectListView, ColumnDefn
 from utils.strutils import monthPrettify
 from views.projects.asn_dlg import PrjAsnDlg
 import models.globals as gbl
+import utils.buttons as btn_lib
 
 
 class PrjAsnListPanel(wx.Panel):
     def __init__(self, parent, prjNickname, asns):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(wx.Colour(79, 114, 142))
+        self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
         self.prjNickname = prjNickname
@@ -28,16 +29,16 @@ class PrjAsnListPanel(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
-        panel.SetBackgroundColour(gbl.TOOLBAR_BG_COLOR)
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.addBtn = wx.Button(panel, wx.ID_ANY, label='Add Assignment')
+        self.addBtn = btn_lib.toolbar_button(panel, 'Add Assignment')
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         if not self.prjNickname:
             self.addBtn.Disable()
         layout.Add(self.addBtn, 0, wx.ALL, 5)
 
-        dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Assignments')
+        dropBtn = btn_lib.toolbar_button(panel, 'Drop Assignments')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
@@ -51,7 +52,7 @@ class PrjAsnListPanel(wx.Panel):
 
     def buildListPanel(self, data):
         panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
-        panel.SetBackgroundColour(gbl.LIST_BG_COLOR)
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
         olv = ObjectListView(panel, wx.ID_ANY,

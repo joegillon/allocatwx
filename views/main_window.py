@@ -3,6 +3,7 @@ import models.globals as gv
 from views.projects.prj_tab import PrjTab
 from views.employees.emp_tab import EmpTab
 from views.efforts.eff_tab import EffTab
+import models.globals as gbl
 
 
 class MainWindow(wx.Frame):
@@ -11,10 +12,11 @@ class MainWindow(wx.Frame):
         panel = wx.Panel(self)
         layout = wx.BoxSizer()
 
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         notebook = wx.Notebook(panel)
         notebook.AddPage(PrjTab(notebook), 'Projects')
         notebook.AddPage(EmpTab(notebook), 'Employees')
         notebook.AddPage(EffTab(notebook), 'Scoreboard')
-        layout.Add(notebook, 1, wx.EXPAND)
+        layout.Add(notebook, 0, wx.EXPAND, 5)
 
         panel.SetSizer(layout)

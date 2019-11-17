@@ -1,7 +1,205 @@
 import wx
+import wx.grid
+import models.globals as gbl
+from utils.ui_utils import getToolbarLabel
+from utils.strutils import datePlus, d2myr, myr2d
+from datetime import date
+import utils.buttons as btn_lib
+
+
+class PercentEffort(object):
+    def __init__(self, prj, percent):
+        self.prj = prj
+        self.percent = percent
+
+
+class EffCell(object):
+    def __init__(self, month):
+        self.month = month
+        self.total = 0
+        self.efforts = []
+
+
+class EffRow(object):
+    def __init__(self, employee):
+        self.employee = employee
+        self.cells = []
 
 
 class EffTab(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
+        self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
+        layout = wx.BoxSizer(wx.VERTICAL)
 
+        self.grid = None
+        self.rows = []
+
+        tbPanel = self.buildToolbarPanel()
+        layout.Add(tbPanel, 0, wx.EXPAND | wx.ALL, 5)
+
+        self.lstPanel = self.buildGridPanel()
+        layout.Add(self.lstPanel, 0, wx.EXPAND | wx.ALL, 5)
+
+        self.SetSizerAndFit(layout)
+
+        self.onRunClick(None)
+
+    def buildToolbarPanel(self):
+        panel = wx.Panel(
+            self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
+        )
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
+        layout = wx.BoxSizer(wx.HORIZONTAL)
+
+        lblStart = getToolbarLabel(panel, 'Start:')
+        lblStart.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
+        layout.Add(lblStart, 0, wx.ALL, 5)
+
+        start = date.today()
+        self.txtStart = wx.TextCtrl(panel, wx.ID_ANY, d2myr(start))
+        layout.Add(self.txtStart, 0, wx.ALL, 5)
+
+        lblThru = getToolbarLabel(panel, 'Thru:')
+        lblThru.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
+        layout.Add(lblThru, 0, wx.ALL, 5)
+
+        self.txtThru = wx.TextCtrl(panel, wx.ID_ANY, datePlus(start, 12))
+        layout.Add(self.txtThru, 0, wx.ALL, 5)
+
+        btnRun = btn_lib.toolbar_button(panel, 'Run Query')
+        btnRun.Bind(wx.EVT_BUTTON, self.onRunClick)
+        layout.Add(btnRun, 0, wx.ALL, 5)
+
+        panel.SetSizerAndFit(layout)
+
+        return panel
+
+    def buildGridPanel(self):
+        panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
+
+        return panel
+
+    def onRunClick(self, event):
+        if self.grid:
+            self.grid.Destroy()
+        self.rows = []
+
+        start = self.txtStart.GetValue()
+        thru = self.txtThru.GetValue()
+        months = self.getMonths(start, thru)
+        self.buildDataSet(start, thru, months)
+
+        self.grid = wx.grid.Grid(self.lstPanel, wx.ID_ANY)
+        self.grid.CreateGrid(len(gbl.empRex), len(months) + 2)
+
+        self.setGridAlignment()
+        self.grid.SetRowLabelSize(0)
+        self.grid.HideCol(0)
+        self.grid.SetColSize(1, gbl.EMP_NAME_WIDTH)
+
+        self.grid.SetDefaultCellBackgroundColour(gbl.COLOR_SCHEME.grdCellBg)
+        self.grid.SetLabelBackgroundColour(gbl.COLOR_SCHEME.grdLblBg)
+
+        self.grid.SetColLabelValue(0, 'EmpID')
+        self.grid.SetColLabelValue(1, 'Employee')
+        self.grid.SetColLabelValue(2, 'FTE')
+
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.onLeftClick)
+
+        colnum = 3
+        for month in months:
+            self.grid.SetColLabelValue(colnum, month)
+            colnum += 1
+
+        for rownum in range(0, len(self.rows)):
+            self.grid.SetCellValue(rownum, 0, str(self.rows[rownum].employee['id']))
+            self.grid.SetCellValue(rownum, 1, self.rows[rownum].employee['name'])
+            self.grid.SetCellValue(rownum, 2, str(self.rows[rownum].employee['fte']))
+            for colnum in range(3, len(months)):
+                self.grid.SetCellValue(rownum, colnum, str(self.rows[rownum].cells[colnum - 3].total))
+
+        layout = wx.BoxSizer(wx.HORIZONTAL)
+        layout.Add(self.grid, 0, wx.ALL | wx.EXPAND, 5)
+
+        # These 2 lines are required to get scroll bars on subsequent grids
+        self.lstPanel.SetSizer(layout)
+        self.Layout()
+
+    def setStartMonth(self, d):
+        m = d.month
+        y = d.year
+        return date(y, m, 1)
+
+    def getMonths(self, startMonth, thruMonth):
+        from dateutil.relativedelta import relativedelta as rd
+
+        start_date = myr2d(startMonth)
+        thru_date = myr2d(thruMonth)
+        months = []
+        while start_date < thru_date:
+            start_date = start_date + rd(months=1)
+            months.append(d2myr(start_date))
+        return months
+
+    def setGridAlignment(self):
+        nrows = self.grid.GetNumberRows()
+        ncols = self.grid.GetNumberCols()
+        for i in range(nrows):
+            for j in range(2, ncols):
+                self.grid.SetCellAlignment(i, j, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
+
+    def buildDataSet(self, start, thru, months):
+        from models.assignment import Assignment
+        from utils.strutils import monthUglify
+
+        asns = Assignment.get_for_timeframe(start, thru)
+        self.emp_asns = {emp['id']: [] for emp in gbl.empRex}
+
+        for asn in asns:
+            self.emp_asns[asn['employee_id']].append(asn)
+
+        for emp in gbl.empRex:
+            row = EffRow(emp)
+            for month in months:
+                cell = EffCell(month)
+                for emp_asn in self.emp_asns[emp['id']]:
+                    if monthUglify(month) < emp_asn['first_month'] or month > emp_asn['last_month']:
+                        continue
+                    cell.total += emp_asn['effort']
+                    cell.efforts.append(
+                        PercentEffort(emp_asn['project'], emp_asn['effort']))
+                row.cells.append(cell)
+            if row.cells:
+                self.rows.append(row)
+
+        self.breakdowns = self.build_breakdowns()
+
+    def onLeftClick(self, event):
+        from views.efforts.emp_brkdwn_dlg import EmployeeBreakdownDlg
+        from views.efforts.month_brkdwn_dlg import MonthBreakdownDialog
+
+        if event.Col == 2:
+            return
+        if event.Col == 1:
+            empId = int(self.grid.GetCellValue(event.Row, 0))
+            if not self.emp_asns[empId]:
+                wx.MessageBox('No assignments!', 'Oops!',  wx.OK | wx.ICON_INFORMATION)
+            dlg = EmployeeBreakdownDlg(self, wx.ID_ANY, self.emp_asns[empId])
+            dlg.ShowModal()
+        else:
+            empId = self.grid.GetCellValue(event.Row, 0)
+            empName = self.grid.GetCellValue(event.Row, 1)
+            month = self.grid.GetColLabelValue(event.Col)
+            key = empId + ':' + month
+            dlg = MonthBreakdownDialog(self, wx.ID_ANY, empName, month, self.breakdowns[key])
+            dlg.ShowModal()
+
+    def build_breakdowns(self):
+        d = {}
+        for row in self.rows:
+            for cell in row.cells:
+                k = '%s:%s' % (row.employee['id'], cell.month)
+                d[k] = [{'project': pe.prj, 'percent': pe.percent} for pe in cell.efforts]
+        return d

@@ -4,12 +4,13 @@ from views.projects.detail_dlg import PrjDetailDlg
 from models.project import Project
 import models.globals as gbl
 from utils.strutils import getWidestTextExtent, monthPrettify
+import utils.buttons as btn_lib
 
 
 class PrjTab(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(gbl.PANEL_BG_COLOR)
+        self.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.pnlBg))
         layout = wx.BoxSizer(wx.VERTICAL)
 
         # Need properties for the filters
@@ -28,42 +29,40 @@ class PrjTab(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
-        panel.SetBackgroundColour(gbl.TOOLBAR_BG_COLOR)
+        panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
         font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
                        wx.FONTWEIGHT_BOLD)
 
-        addBtn = wx.Button(panel, wx.ID_ANY, label='Add Project',
-                           pos=wx.DefaultPosition,
-                           size=wx.DefaultSize,
-                           style=0)
+        addBtn = btn_lib.toolbar_button(panel, 'Add Project')
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
+        layout.Add(addBtn, 0, wx.ALL, 5)
 
-        dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Projects')
+        dropBtn = btn_lib.toolbar_button(panel, 'Drop Projects')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
+        layout.Add(dropBtn, 0, wx.ALL, 5)
 
         lblNickFltr = wx.StaticText(panel, wx.ID_ANY, 'Nickname:')
         lblNickFltr.SetFont(font)
-        lblNickFltr.SetForegroundColour('white')
+        lblNickFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
+        layout.Add(lblNickFltr, 0, wx.ALL, 5)
+
         nickFltr = wx.SearchCtrl(panel, wx.ID_ANY, '', style=wx.TE_PROCESS_ENTER, name='nickFltr')
         nickFltr.ShowCancelButton(True)
         nickFltr.Bind(wx.EVT_CHAR, self.onFltr)
         nickFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
+        layout.Add(nickFltr, 0, wx.ALL, 5)
 
         lblNotesFltr = wx.StaticText(panel, wx.ID_ANY, 'Notes')
         lblNotesFltr.SetFont(font)
-        lblNotesFltr.SetForegroundColour('white')
+        lblNotesFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
+        layout.Add(lblNotesFltr, 0, wx.ALL, 5)
+
         notesFltr = wx.SearchCtrl(panel, wx.ID_ANY, style=wx.TE_PROCESS_ENTER, name='notesFltr')
         notesFltr.ShowCancelButton(True)
         notesFltr.Bind(wx.EVT_CHAR, self.onFltr)
         notesFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
-
-        layout.Add(addBtn, 0, wx.ALL, 5)
-        layout.Add(dropBtn, 0, wx.ALL, 5)
-        layout.Add(lblNickFltr, 0, wx.ALL, 5)
-        layout.Add(nickFltr, 0, wx.ALL, 5)
-        layout.Add(lblNotesFltr, 0, wx.ALL, 5)
         layout.Add(notesFltr, 0, wx.ALL, 5)
 
         hlpBtn = gbl.getHelpBtn(panel)
@@ -76,7 +75,7 @@ class PrjTab(wx.Panel):
 
     def buildListPanel(self, data):
         panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
-        panel.SetBackgroundColour(gbl.LIST_BG_COLOR)
+        panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
         self.olv = ObjectListView(panel, wx.ID_ANY,
@@ -84,11 +83,11 @@ class PrjTab(wx.Panel):
                                   style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         font = self.olv.GetFont()
-        nickWidth = getWidestTextExtent(font, [x['nickname'] for x in data])
+        gbl.PRJ_NICKNAME_WIDTH = getWidestTextExtent(font, [x['nickname'] for x in data])
         nameWidth = getWidestTextExtent(font, [x['name'] for x in data])
 
         self.olv.SetColumns([
-            ColumnDefn('Nickname', 'left', nickWidth, 'nickname'),
+            ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
             ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=monthPrettify),
             ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=monthPrettify),
             ColumnDefn('Name', 'left', nameWidth, 'name'),
@@ -98,9 +97,11 @@ class PrjTab(wx.Panel):
         self.olv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
         self.olv.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
+        self.olv.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
+
         self.olv.SetObjects(data)
 
-        layout.Add(self.olv, 1, wx.ALL | wx.EXPAND, 5)
+        layout.Add(self.olv, 0, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizer(layout)
 

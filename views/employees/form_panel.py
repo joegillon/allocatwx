@@ -1,11 +1,13 @@
 import wx
 from utils.strutils import monthPrettify, displayValue
+import models.globals as gbl
+import utils.buttons as btn_lib
 
 
 class EmpFormPanel(wx.Panel):
     def __init__(self, parent, emp=None):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(wx.Colour(116, 65, 43))
+        self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
         self.emp = emp
@@ -22,13 +24,13 @@ class EmpFormPanel(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
-        panel.SetBackgroundColour(wx.Colour(190, 130, 96))
+        panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        dropBtn = wx.Button(panel, wx.ID_ANY, label='Drop Employee')
+        dropBtn = btn_lib.toolbar_button(panel, 'Drop Employee')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropClick)
 
-        saveBtn = wx.Button(panel, wx.ID_ANY, label='Save Employee')
+        saveBtn = btn_lib.toolbar_button(panel, 'Save Employee')
         saveBtn.Bind(wx.EVT_BUTTON, self.onSaveClick)
 
         layout.Add(dropBtn, 0, wx.ALL, 5)
@@ -42,7 +44,7 @@ class EmpFormPanel(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, size=(-1, 375)
         )
-        panel.SetBackgroundColour(wx.Colour(215, 176, 149))
+        panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.frmBg))
         panel.SetForegroundColour('black')
         layout = wx.BoxSizer(wx.VERTICAL)
 
