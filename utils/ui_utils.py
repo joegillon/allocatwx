@@ -16,3 +16,17 @@ def getToolbarLabel(panel, text):
     lbl.SetFont(font)
     lbl.SetForegroundColour('white')
     return lbl
+
+
+class EmpNameValidator(wx.PyValidator):
+    def __init__(self):
+        super(EmpNameValidator, self).__init__()
+
+    def Clone(self):
+        return EmpNameValidator
+
+    def Validate(self, win):
+        textCtrl = self.GetWindow()
+        text = textCtrl.GetValue()
+
+        

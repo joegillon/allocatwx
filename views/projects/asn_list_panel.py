@@ -1,6 +1,6 @@
 import wx
 from ObjectListView import ObjectListView, ColumnDefn
-from utils.strutils import monthPrettify
+from models.month import Month
 from views.projects.asn_dlg import PrjAsnDlg
 import models.globals as gbl
 import utils.buttons as btn_lib
@@ -61,8 +61,8 @@ class PrjAsnListPanel(wx.Panel):
 
         olv.SetColumns([
             ColumnDefn('Employee', 'left', 200, 'employee'),
-            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=monthPrettify),
-            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=monthPrettify),
+            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=Month.prettify),
+            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=Month.prettify),
             ColumnDefn('Effort', 'left', 100, 'effort'),
         ])
 

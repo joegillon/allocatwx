@@ -1,5 +1,5 @@
 import wx
-from utils.strutils import monthPrettify, displayValue
+from utils.strutils import displayValue
 import models.globals as gbl
 import utils.buttons as btn_lib
 

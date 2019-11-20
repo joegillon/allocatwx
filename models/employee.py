@@ -16,6 +16,20 @@ class Employee(object):
         return Dao.execute(sql)
 
     @staticmethod
+    def get_all_active():
+        sql = ("SELECT * FROM employees "
+               "WHERE active=1 "
+               "ORDER BY name;")
+        return Dao.execute(sql)
+
+    @staticmethod
+    def get_investigators():
+        sql = ("SELECT * FROM employees "
+               "WHERE investigator=1 "
+               "ORDER BY name;")
+        return Dao.execute(sql)
+
+    @staticmethod
     def getAsns(empid, month=None):
         sql = ("SELECT a.id AS id, "
                "a.project_id AS project_id, "
@@ -26,10 +40,37 @@ class Employee(object):
                "p.nickname AS project "
                "FROM assignments AS a "
                "JOIN projects AS p ON a.project_id= p.id "
-               "WHERE a.employee_id=? ")
+               "WHERE a.employee_id=? "
+               "AND a.active=1 ")
         vals = [empid]
         if month:
             sql += "AND a.last_month >= ? "
             vals += [month]
         sql += "ORDER BY p.nickname;"
         return Dao.execute(sql, vals)
+
+    @staticmethod
+    def add(d):
+        del d['id']
+        sql = "INSERT INTO employees (%s) VALUES (%s);" % (
+            ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
+        )
+        vals = list(d.values())
+        return Dao.execute(sql, vals)
+
+    @staticmethod
+    def update(d):
+        empid = d['id']
+        del d['id']
+        sql = ("UPDATE employees "
+               "SET %s "
+               "WHERE id=?;") % (
+            ','.join(f + '=?' for f in d.keys()))
+        vals = list(d.values()) + [empid]
+        return Dao.execute(sql, vals)
+
+    @staticmethod
+    def delete(ids):
+        sql = "DELETE FROM employees WHERE id IN (%s);" % \
+              ','.join(['?'] * len(ids))
+        return Dao.execute(sql, ids)

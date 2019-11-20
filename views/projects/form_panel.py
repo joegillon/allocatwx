@@ -1,6 +1,7 @@
 import wx
-from utils.strutils import monthPrettify, displayValue
+from utils.strutils import displayValue
 import models.globals as gbl
+from models.month import Month
 import utils.buttons as btn_lib
 
 
@@ -66,19 +67,32 @@ class PrjFormPanel(wx.Panel):
 
         intervalLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: ')
-        txtFirstMonth = wx.TextCtrl(panel, wx.ID_ANY,
-                                    monthPrettify(displayValue(self.prj, 'first_month')),
-                                    size=(50, -1))
+        value = Month.prettify(displayValue(self.prj, 'first_month'))
+        txtFirstMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         intervalLayout.Add(txtFirstMonth, 0, wx.ALL, 5)
 
         lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: ')
-        txtLastMonth = wx.TextCtrl(panel, wx.ID_ANY,
-                                   monthPrettify(displayValue(self.prj, 'last_month')),
-                                   size=(50, -1))
+        value = Month.prettify(displayValue(self.prj, 'last_month'))
+        txtLastMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
         intervalLayout.Add(txtLastMonth, 0, wx.ALL, 5)
         layout.Add(intervalLayout, 0, wx.ALL, 5)
+
+        personsLayout = wx.BoxSizer(wx.HORIZONTAL)
+        lblPI = wx.StaticText(panel, wx.ID_ANY, 'PI:')
+        pis = [emp['name'] for emp in gbl.empRex if emp['investigator'] == 1]
+        cboPI = wx.ComboBox(panel, wx.ID_ANY,
+                            choices=pis, value=self.prj['PiName'])
+        personsLayout.Add(lblPI, 0, wx.ALL, 5)
+        personsLayout.Add(cboPI, 0, wx.ALL, 5)
+        lblPM = wx.StaticText(panel, wx.ID_ANY, 'PM:')
+        pms = [emp['name'] for emp in gbl.empRex if emp['investigator'] == 0 ]
+        cboPM = wx.ComboBox(panel, wx.ID_ANY,
+                            choices=pms, value=self.prj['PmName'])
+        personsLayout.Add(lblPM, 0, wx.ALL, 5)
+        personsLayout.Add(cboPM, 0, wx.ALL, 5)
+        layout.Add(personsLayout, 0, wx.ALL, 5)
 
         notesLayout = wx.BoxSizer(wx.VERTICAL)
         lblNotes = wx.StaticText(panel, wx.ID_ANY, 'Notes:')

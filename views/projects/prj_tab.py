@@ -3,7 +3,8 @@ from ObjectListView import ObjectListView, ColumnDefn, Filter
 from views.projects.detail_dlg import PrjDetailDlg
 from models.project import Project
 import models.globals as gbl
-from utils.strutils import getWidestTextExtent, monthPrettify
+from utils.strutils import getWidestTextExtent
+from models.month import Month
 import utils.buttons as btn_lib
 
 
@@ -88,8 +89,10 @@ class PrjTab(wx.Panel):
 
         self.olv.SetColumns([
             ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
-            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=monthPrettify),
-            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=monthPrettify),
+            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=Month.prettify),
+            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=Month.prettify),
+            ColumnDefn('PI', 'left', 150, 'PiName'),
+            ColumnDefn('PM', 'left', 150, 'PmName'),
             ColumnDefn('Name', 'left', nameWidth, 'name'),
             ColumnDefn('Notes', 'left', 0, 'notes')
         ])

@@ -2,7 +2,7 @@ import wx
 import wx.grid
 import models.globals as gbl
 from utils.ui_utils import getToolbarLabel
-from utils.strutils import datePlus, d2myr, myr2d
+from models.month import Month
 from datetime import date
 import utils.buttons as btn_lib
 
@@ -57,14 +57,14 @@ class EffTab(wx.Panel):
         layout.Add(lblStart, 0, wx.ALL, 5)
 
         start = date.today()
-        self.txtStart = wx.TextCtrl(panel, wx.ID_ANY, d2myr(start))
+        self.txtStart = wx.TextCtrl(panel, wx.ID_ANY, Month.d2month(start))
         layout.Add(self.txtStart, 0, wx.ALL, 5)
 
         lblThru = getToolbarLabel(panel, 'Thru:')
         lblThru.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblThru, 0, wx.ALL, 5)
 
-        self.txtThru = wx.TextCtrl(panel, wx.ID_ANY, datePlus(start, 12))
+        self.txtThru = wx.TextCtrl(panel, wx.ID_ANY, Month.datePlus(start, 12))
         layout.Add(self.txtThru, 0, wx.ALL, 5)
 
         btnRun = btn_lib.toolbar_button(panel, 'Run Query')
@@ -88,7 +88,7 @@ class EffTab(wx.Panel):
 
         start = self.txtStart.GetValue()
         thru = self.txtThru.GetValue()
-        months = self.getMonths(start, thru)
+        months = Month.getMonths(start, thru)
         self.buildDataSet(start, thru, months)
 
         self.grid = wx.grid.Grid(self.lstPanel, wx.ID_ANY)
@@ -127,22 +127,6 @@ class EffTab(wx.Panel):
         self.lstPanel.SetSizer(layout)
         self.Layout()
 
-    def setStartMonth(self, d):
-        m = d.month
-        y = d.year
-        return date(y, m, 1)
-
-    def getMonths(self, startMonth, thruMonth):
-        from dateutil.relativedelta import relativedelta as rd
-
-        start_date = myr2d(startMonth)
-        thru_date = myr2d(thruMonth)
-        months = []
-        while start_date < thru_date:
-            start_date = start_date + rd(months=1)
-            months.append(d2myr(start_date))
-        return months
-
     def setGridAlignment(self):
         nrows = self.grid.GetNumberRows()
         ncols = self.grid.GetNumberCols()
@@ -152,7 +136,6 @@ class EffTab(wx.Panel):
 
     def buildDataSet(self, start, thru, months):
         from models.assignment import Assignment
-        from utils.strutils import monthUglify
 
         asns = Assignment.get_for_timeframe(start, thru)
         self.emp_asns = {emp['id']: [] for emp in gbl.empRex}
@@ -165,7 +148,7 @@ class EffTab(wx.Panel):
             for month in months:
                 cell = EffCell(month)
                 for emp_asn in self.emp_asns[emp['id']]:
-                    if monthUglify(month) < emp_asn['first_month'] or month > emp_asn['last_month']:
+                    if Month.uglify(month) < emp_asn['first_month'] or month > emp_asn['last_month']:
                         continue
                     cell.total += emp_asn['effort']
                     cell.efforts.append(

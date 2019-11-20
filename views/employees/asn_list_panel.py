@@ -1,6 +1,6 @@
 import wx
 from ObjectListView import ObjectListView, ColumnDefn
-from utils.strutils import monthPrettify
+from models.month import Month
 from views.employees.asn_dlg import EmpAsnDlg
 import models.globals as gbl
 import utils.buttons as btn_lib
@@ -61,8 +61,8 @@ class EmpAsnListPanel(wx.Panel):
 
         olv.SetColumns([
             ColumnDefn('Project', 'left', 200, 'project'),
-            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=monthPrettify),
-            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=monthPrettify),
+            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=Month.prettify),
+            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=Month.prettify),
             ColumnDefn('Effort', 'left', 100, 'effort'),
         ])
 

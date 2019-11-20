@@ -1,7 +1,7 @@
 import wx
 from ObjectListView import ObjectListView, ColumnDefn
 import models.globals as gbl
-from utils.strutils import monthPrettify
+from models.month import Month
 
 
 class EmployeeBreakdownDlg(wx.Dialog):
@@ -44,8 +44,8 @@ class EmployeeBreakdownDlg(wx.Dialog):
                                   style=wx.LC_REPORT | wx.SUNKEN_BORDER)
         self.olv.SetColumns([
             ColumnDefn('Project', 'left', gbl.PRJ_NICKNAME_WIDTH, 'project'),
-            ColumnDefn('First Month', 'right', 105, 'first_month', stringConverter=monthPrettify),
-            ColumnDefn('Last Month', 'right', 100, 'last_month', stringConverter=monthPrettify),
+            ColumnDefn('First Month', 'right', 105, 'first_month', stringConverter=Month.prettify),
+            ColumnDefn('Last Month', 'right', 100, 'last_month', stringConverter=Month.prettify),
             ColumnDefn('% Effort', 'right', 100, 'effort')
         ])
 

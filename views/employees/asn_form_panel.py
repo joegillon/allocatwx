@@ -1,6 +1,7 @@
 import wx
 import models.globals as gbl
-from utils.strutils import displayValue, monthPrettify
+from models.month import Month
+from utils.strutils import displayValue
 import utils.buttons as btn_lib
 
 
@@ -76,14 +77,14 @@ class EmpAsnFormPanel(wx.Panel):
         lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: ')
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         self.txtFirstMonth = wx.TextCtrl(panel, wx.ID_ANY,
-                                         monthPrettify(displayValue(self.asn, 'first_month')),
+                                         Month.prettify(displayValue(self.asn, 'first_month')),
                                          size=(50, -1))
         intervalLayout.Add(self.txtFirstMonth, 0, wx.ALL, 5)
 
         lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: ')
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
         self.txtLastMonth = wx.TextCtrl(panel, wx.ID_ANY,
-                                        monthPrettify(displayValue(self.asn, 'last_month')),
+                                        Month.prettify(displayValue(self.asn, 'last_month')),
                                         size=(50, -1))
         intervalLayout.Add(self.txtLastMonth, 0, wx.ALL, 5)
 
