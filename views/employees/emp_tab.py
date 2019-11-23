@@ -85,7 +85,8 @@ class EmpTab(wx.Panel):
                                   style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         font = self.olv.GetFont()
-        gbl.EMP_NAME_WIDTH = getWidestTextExtent(font, [x['name'] for x in data])
+        gbl.EMP_NAME_WIDTH = \
+            getWidestTextExtent(font, [x['name'] for x in data.values()])
 
         self.olv.SetColumns([
             ColumnDefn('Name', 'left', gbl.EMP_NAME_WIDTH , 'name'),
@@ -102,7 +103,7 @@ class EmpTab(wx.Panel):
 
         self.olv.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
 
-        self.olv.SetObjects(data)
+        self.olv.SetObjects(list(data.values()))
 
         layout.Add(self.olv, 1, wx.ALL | wx.EXPAND, 5)
 

@@ -3,11 +3,11 @@ from views.projects.asn_form_panel import PrjAsnFormPanel
 
 
 class PrjAsnDlg(wx.Dialog):
-    def __init__(self, parent, winId, title, prjNickname, asn):
+    def __init__(self, parent, winId, title, prjId, asn):
         wx.Dialog.__init__(self, parent, winId, title, size=(500, 400))
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        panel = PrjAsnFormPanel(self, prjNickname, asn)
+        panel = PrjAsnFormPanel(self, prjId, asn)
 
         layout.Add(panel, 0, wx.ALL | wx.EXPAND, 5)
 

@@ -84,8 +84,9 @@ class PrjTab(wx.Panel):
                                   style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         font = self.olv.GetFont()
-        gbl.PRJ_NICKNAME_WIDTH = getWidestTextExtent(font, [x['nickname'] for x in data])
-        nameWidth = getWidestTextExtent(font, [x['name'] for x in data])
+        gbl.PRJ_NICKNAME_WIDTH = \
+            getWidestTextExtent(font, [x['nickname'] for x in data.values()])
+        nameWidth = getWidestTextExtent(font, [x['name'] for x in data.values()])
 
         self.olv.SetColumns([
             ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
@@ -102,7 +103,7 @@ class PrjTab(wx.Panel):
 
         self.olv.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
 
-        self.olv.SetObjects(data)
+        self.olv.SetObjects(list(data.values()))
 
         layout.Add(self.olv, 0, wx.ALL | wx.EXPAND, 5)
 
@@ -114,7 +115,7 @@ class PrjTab(wx.Panel):
         prj = event.EventObject.GetSelectedObject()
         asns = Project.getAsns(prj['id'])
 
-        dlg = PrjDetailDlg(self, wx.ID_ANY, 'Project Details', prj, asns)
+        dlg = PrjDetailDlg(self, wx.ID_ANY, 'Project Details', prj['id'], asns)
         dlg.ShowModal()
 
     def onRightClick(self, event):

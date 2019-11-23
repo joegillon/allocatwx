@@ -3,8 +3,9 @@ from utils.custom_button import CustomButton
 from models.globals import COLOR_SCHEME
 
 
-def toolbar_button(panel, label):
-    btn = CustomButton(panel, -1, label)
+def toolbar_button(panel, label, ok=None):
+    winId = wx.ID_OK if ok else wx.ID_ANY
+    btn = CustomButton(panel, winId, label)
     font_normal = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.FONTWEIGHT_BOLD)
     font_hover = wx.Font(10, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
     btn.set_font(font_normal, hover=font_hover)

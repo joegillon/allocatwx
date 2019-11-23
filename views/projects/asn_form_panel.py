@@ -1,14 +1,16 @@
 import wx
 import models.globals as gbl
+from models.month import Month
 import utils.buttons as btn_lib
 
 
 class PrjAsnFormPanel(wx.Panel):
-    def __init__(self, parent, prjName, asn=None):
+    def __init__(self, parent, prjId, asn=None):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
+        self.prj = gbl.prjRex[prjId] if prjId else None
         self.asn = asn
         self.cboEmp = None
         self.txtFirstMonth = None
@@ -17,7 +19,7 @@ class PrjAsnFormPanel(wx.Panel):
         self.txtNotes = None
 
         tbPanel = self.buildToolbarPanel()
-        frmPanel = self.buildFormPanel(prjName)
+        frmPanel = self.buildFormPanel(prjId)
 
         layout.Add(tbPanel, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(frmPanel, 0, wx.ALL | wx.EXPAND, 5)
@@ -52,7 +54,7 @@ class PrjAsnFormPanel(wx.Panel):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         prjLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblPrj = wx.StaticText(panel, wx.ID_ANY, 'Project: ' + prjName)
+        lblPrj = wx.StaticText(panel, wx.ID_ANY, 'Project: ' + self.prj['nickname'])
         prjLayout.Add(lblPrj, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(prjLayout)
 
@@ -61,7 +63,7 @@ class PrjAsnFormPanel(wx.Panel):
         lblEmp = wx.StaticText(panel, wx.ID_ANY, value)
         empLayout.Add(lblEmp, 0, wx.ALL, 5)
         if not self.asn:
-            names = [rec['name'] for rec in gbl.empRex]
+            names = [rec['name'] for rec in gbl.empRex.values()]
             self.cboEmp = wx.ComboBox(panel, wx.ID_ANY,
                                       pos=wx.DefaultPosition,
                                       size=wx.DefaultSize,
@@ -76,13 +78,13 @@ class PrjAsnFormPanel(wx.Panel):
         lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: ')
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         value = self.asn['first_month'] if self.asn else ''
-        self.txtFirstMonth = wx.TextCtrl(panel, wx.ID_ANY, value, size=(50, -1))
+        self.txtFirstMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(self.txtFirstMonth, 0, wx.ALL, 5)
 
         lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: ')
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
         value = self.asn['last_month'] if self.asn else ''
-        self.txtLastMonth = wx.TextCtrl(panel, wx.ID_ANY, value, size=(50, -1))
+        self.txtLastMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(self.txtLastMonth, 0, wx.ALL, 5)
 
         layout.Add(intervalLayout)
@@ -109,9 +111,72 @@ class PrjAsnFormPanel(wx.Panel):
         return panel
 
     def onSaveClick(self, event):
-        if self.asn:
+        if self.validate():
             print('save ' + str(self.asn['id']))
+        else:
+            return
         self.Parent.Close()
+
+    def validate(self):
+        import re
+
+        if self.cboEmp:
+            value = self.cboEmp.GetValue()
+            if not value:
+                wx.MessageBox('Employee required!', 'Error',
+                           wx.OK | wx.ICON_EXCLAMATION)
+                self.cboEmp.SetFocus()
+                return False
+
+        first_month = self.txtFirstMonth.GetValue()
+        if not re.match(gbl.MONTH_PATTERN, first_month):
+            self.txtFirstMonth.SetFocus()
+            wx.MessageBox('First Month invalid!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+        first_month = Month.uglify(first_month)
+
+        last_month = self.txtLastMonth.GetValue()
+        if not re.match(gbl.MONTH_PATTERN, last_month):
+            self.txtLastMonth.SetFocus()
+            wx.MessageBox('Last Month invalid!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+        last_month = Month.uglify(last_month)
+
+        if not Month.isValidSpan(first_month, last_month):
+            self.txtFirstMonth.SetFocus()
+            wx.MessageBox('First Month must precede Last Month!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        if not Month.isInPrjSpan(self.prj, first_month, last_month):
+            self.txtFirstMonth.SetFocus()
+            wx.MessageBox('Timeframe outside project timeframe!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        value = self.txtEffort.GetValue()
+        if value == '':
+            self.txtEffort.SetFocus()
+            wx.MessageBox('Percent effort required!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        if not value.isdigit():
+            self.txtEffort.SetFocus()
+            wx.MessageBox('Percent effort must be numeric!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        value = int(value)
+        if value < 0 or value > 100:
+            self.txtEffort.SetFocus()
+            wx.MessageBox('Percent effort must be between 0-100!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        return True
 
     def onCancelClick(self, event):
         self.Parent.Close()

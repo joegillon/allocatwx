@@ -1,9 +1,12 @@
 import wx
 from collections import namedtuple
 
-prjRex = []
-empRex = []
-asnRex = []
+prjRex = {}
+empRex = {}
+# asnRex = []
+# prjNames = []
+# prjNicknames = []
+# empNames = {}
 
 Skin = namedtuple('Skin', [
     'pnlBg', 'tbBg', 'tbFg', 'lstBg', 'lstHdr', 'lstSel',
@@ -159,6 +162,10 @@ COLOR_SCHEME = SKINS['Seafoam']
 
 EMP_NAME_WIDTH = 0
 PRJ_NICKNAME_WIDTH = 0
+
+MONTH_PATTERN = '^(0?[1-9]|1[012])/[0-9]{2}$'
+NAME_CHAR_PATTERN = "[A-Z ,\'\-\(\)]"
+WHOLE_NAME_PATTERN = "^[A-Z ,\'\-\(\)]+, ?[A-Z ,\'\-]+ ?[A-Z ,\'\- ]+$"
 
 def getHelpBtn(parent):
     bmp = wx.Bitmap('images/question.png', wx.BITMAP_TYPE_ANY)

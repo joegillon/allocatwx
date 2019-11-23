@@ -114,9 +114,10 @@ class EffTab(wx.Panel):
             colnum += 1
 
         for rownum in range(0, len(self.rows)):
-            self.grid.SetCellValue(rownum, 0, str(self.rows[rownum].employee['id']))
-            self.grid.SetCellValue(rownum, 1, self.rows[rownum].employee['name'])
-            self.grid.SetCellValue(rownum, 2, str(self.rows[rownum].employee['fte']))
+            employee = gbl.empRex[self.rows[rownum].employee]
+            self.grid.SetCellValue(rownum, 0, str(employee['id']))
+            self.grid.SetCellValue(rownum, 1, employee['name'])
+            self.grid.SetCellValue(rownum, 2, str(employee['fte']))
             for colnum in range(3, len(months)):
                 self.grid.SetCellValue(rownum, colnum, str(self.rows[rownum].cells[colnum - 3].total))
 
@@ -138,7 +139,7 @@ class EffTab(wx.Panel):
         from models.assignment import Assignment
 
         asns = Assignment.get_for_timeframe(start, thru)
-        self.emp_asns = {emp['id']: [] for emp in gbl.empRex}
+        self.emp_asns = {emp['id']: [] for emp in gbl.empRex.values()}
 
         for asn in asns:
             self.emp_asns[asn['employee_id']].append(asn)
@@ -147,7 +148,7 @@ class EffTab(wx.Panel):
             row = EffRow(emp)
             for month in months:
                 cell = EffCell(month)
-                for emp_asn in self.emp_asns[emp['id']]:
+                for emp_asn in self.emp_asns[emp]:
                     if Month.uglify(month) < emp_asn['first_month'] or month > emp_asn['last_month']:
                         continue
                     cell.total += emp_asn['effort']
@@ -183,6 +184,6 @@ class EffTab(wx.Panel):
         d = {}
         for row in self.rows:
             for cell in row.cells:
-                k = '%s:%s' % (row.employee['id'], cell.month)
+                k = '%s:%s' % (row.employee, cell.month)
                 d[k] = [{'project': pe.prj, 'percent': pe.percent} for pe in cell.efforts]
         return d

@@ -13,14 +13,16 @@ class Employee(object):
     @staticmethod
     def get_all():
         sql = "SELECT * FROM employees ORDER BY name;"
-        return Dao.execute(sql)
+        rex = Dao.execute(sql)
+        return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
     def get_all_active():
         sql = ("SELECT * FROM employees "
                "WHERE active=1 "
                "ORDER BY name;")
-        return Dao.execute(sql)
+        rex = Dao.execute(sql)
+        return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
     def get_investigators():

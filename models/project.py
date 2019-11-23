@@ -19,7 +19,8 @@ class Project(object):
         sql = ("SELECT * FROM projects "
                "WHERE active=1 "
                "ORDER BY nickname;")
-        return Dao.execute(sql)
+        rex = Dao.execute(sql)
+        return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
     def getAsns(prjid, month=None):
@@ -32,8 +33,8 @@ class Project(object):
                "e.name AS employee "
                "FROM assignments AS a "
                "JOIN employees AS e ON a.employee_id= e.id "
-               "WHERE a.project_id=? "
-               "AND a.active=1 ")
+               "WHERE a.project_id=? ")
+               # "AND a.active=1 ")
         vals = [prjid]
         if month:
             sql += "AND a.last_month >= ? "

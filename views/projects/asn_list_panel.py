@@ -7,12 +7,12 @@ import utils.buttons as btn_lib
 
 
 class PrjAsnListPanel(wx.Panel):
-    def __init__(self, parent, prjNickname, asns):
+    def __init__(self, parent, prjId, asns):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.prjNickname = prjNickname
+        self.prj = gbl.prjRex[prjId] if prjId else None
         self.olv = None
         self.op = None
         self.addBtn = None
@@ -34,7 +34,7 @@ class PrjAsnListPanel(wx.Panel):
 
         self.addBtn = btn_lib.toolbar_button(panel, 'Add Assignment')
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
-        if not self.prjNickname:
+        if not self.prj:
             self.addBtn.Disable()
         layout.Add(self.addBtn, 0, wx.ALL, 5)
 
@@ -85,11 +85,11 @@ class PrjAsnListPanel(wx.Panel):
 
     def onDblClick(self, event):
         asn = event.EventObject.GetSelectedObject()
-        dlg = PrjAsnDlg(self, -1, 'Assignment Details', self.prjNickname, asn)
+        dlg = PrjAsnDlg(self, -1, 'Assignment Details', self.prj['id'], asn)
         dlg.ShowModal()
 
     def onAddBtnClick(self, event):
-        dlg = PrjAsnDlg(self, -1, 'New Assignment', self.prjNickname, None)
+        dlg = PrjAsnDlg(self, -1, 'New Assignment', self.prj['id'], None)
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):

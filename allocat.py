@@ -1,4 +1,4 @@
-import models.globals as gv
+import models.globals as gbl
 from models.project import Project
 from models.employee import Employee
 
@@ -8,11 +8,16 @@ if __name__ == '__main__':
 
     app = App()
 
-    gv.prjRex = Project.get_all_active()
-    gv.empRex = Employee.get_all()
+    gbl.prjRex = Project.get_all_active()
+    gbl.empRex = Employee.get_all()
 
-    empNames = {emp['id']: emp['name'] for emp in gv.empRex}
-    for prj in gv.prjRex:
+    # prjDict = {prj['id']: prj for prj in gbl.prjRex}
+    # for prj in gbl.prjRex:
+    #     gbl.prjNames.append(prj['name'])
+    #     gbl.prjNicknames.append(prj['nickname'].upper())
+
+    empNames = {emp['id']: emp['name'] for emp in gbl.empRex.values()}
+    for prj in gbl.prjRex.values():
         prj['PiName'] = empNames[prj['PI']] if prj['PI'] else ''
         prj['PmName'] = empNames[prj['PM']] if prj['PM'] else ''
 

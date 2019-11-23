@@ -5,6 +5,11 @@ MONTH_FORMAT = '%m/%y'
 
 
 class Month(object):
+    def __init__(self, value):
+        value = self.uglify(value)
+        self.month = value[0:2]
+        self.year = value[3:]
+
     @staticmethod
     def prettify(month):
         if len(month) != 4:
@@ -50,10 +55,10 @@ class Month(object):
         return last >= first
 
     @staticmethod
-    def isInPrjSpan(prj, asn):
-        if asn.first_month < prj.first_month:
+    def isInPrjSpan(prj, first_month, last_month):
+        if first_month < prj['first_month']:
             return False
-        return asn.last_month <= prj.last_month
+        return last_month <= prj['last_month']
 
     @staticmethod
     def getMonthCtrl(panel, value):
