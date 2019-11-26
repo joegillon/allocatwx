@@ -119,65 +119,26 @@ class EmpAsnFormPanel(wx.Panel):
         self.Parent.Close()
 
     def validate(self):
-        import re
+        import models.validators as validators
 
         if self.cboPrj:
             value = self.cboPrj.GetValue()
-            if not value:
-                wx.MessageBox('Project required!', 'Error',
-                           wx.OK | wx.ICON_EXCLAMATION)
-                self.cboPrj.SetFocus()
+            errMsg = validators.validatePrjNickname(value)
+            if errMsg:
+                validators.showErrMsg(self.cboPrj, errMsg)
                 return False
-        for prjId, prj in gbl.prjRex.items():
-            if prj['nickname'] == value:
-                break
 
         first_month = self.txtFirstMonth.GetValue()
-        if not re.match(gbl.MONTH_PATTERN, first_month):
-            self.txtFirstMonth.SetFocus()
-            wx.MessageBox('First Month invalid!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-        first_month = Month.uglify(first_month)
-
         last_month = self.txtLastMonth.GetValue()
-        if not re.match(gbl.MONTH_PATTERN, last_month):
-            self.txtLastMonth.SetFocus()
-            wx.MessageBox('Last Month invalid!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-        last_month = Month.uglify(last_month)
-
-        if not Month.isValidSpan(first_month, last_month):
-            self.txtFirstMonth.SetFocus()
-            wx.MessageBox('First Month must precede Last Month!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if not Month.isInPrjSpan(prj, first_month, last_month):
-            self.txtFirstMonth.SetFocus()
-            wx.MessageBox('Timeframe outside project timeframe!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
+        errMsg = validators.validateTimeframe(first_month, last_month)
+        if errMsg:
+            validators.showErrMsg(self.txtFirstMonth, errMsg)
             return False
 
         value = self.txtEffort.GetValue()
-        if value == '':
-            self.txtEffort.SetFocus()
-            wx.MessageBox('Percent effort required!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if not value.isdigit():
-            self.txtEffort.SetFocus()
-            wx.MessageBox('Percent effort must be numeric!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        value = int(value)
-        if value < 0 or value > 100:
-            self.txtEffort.SetFocus()
-            wx.MessageBox('Percent effort must be between 0-100!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
+        errMsg = validators.validateEffort(value)
+        if errMsg:
+            validators.showErrMsg(self.txtEffort, errMsg)
             return False
 
         return True

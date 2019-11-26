@@ -4,18 +4,19 @@ from utils.strutils import dropAllWhitespace
 from models.month import Month
 
 MONTH_PATTERN = r"^(0?[1-9]|1[012])/[0-9]{2}$"
-# MONTH_PATTERN = r"^[0-9]{2}(0?[1-9]|1[012])$"
-# NAME_CHAR_PATTERN = r"[A-Z ,\'\-\(\)]"
-WHOLE_NAME_PATTERN = r"^[\w'-]+,[\s]+[\w'-]+$"
+WHOLE_NAME_PATTERN = r"^[A-Z'\-]+,[\s]*[A-Z' \-]+$"
+SCALE_100_PATTERN = r"^[0-9][0-9]?$|^100$"
+SCALE_15_PATTERN = r"^[0-9]$|^1[0-5]$"
 
 
-def validatePrjName(value, prjRex):
+def validatePrjName(value, prjRex=None):
     if value is None or value == '':
         return 'Project name required!'
 
-    testNames = [dropAllWhitespace(rec['name'].upper()) for rec in prjRex.values()]
-    if dropAllWhitespace(value.upper()) in testNames:
-        return 'Project name taken!'
+    if prjRex:
+        testNames = [dropAllWhitespace(rec['name'].upper()) for rec in prjRex.values()]
+        if dropAllWhitespace(value.upper()) in testNames:
+            return 'Project name taken!'
 
     return None
 
@@ -48,30 +49,49 @@ def validateTimeframe(firstMonth, lastMonth, prj=None):
     return None
 
 
-def validateEmpName(value, chk=None):
+def validateEmpName(value, empRex=None):
     if value is None or value == '':
         return 'Employee name required!'
 
-    if chk:
+    if empRex:
         if not re.match(WHOLE_NAME_PATTERN, value.upper()):
             return 'Employee name invalid!'
 
+        testNames = [dropAllWhitespace(rec['name'].upper()) for rec in empRex.values()]
+        if dropAllWhitespace(value.upper()) in testNames:
+            return 'Employee name taken!'
+
     return None
+
+
+def validateGrade(value):
+    if value and not re.match(SCALE_15_PATTERN, value):
+        return 'Grade must be number between 0-15!'
+    return None
+
+
+def validateStep(value):
+    if value and not re.match(SCALE_15_PATTERN, value):
+        return 'Step must be number between 0-15!'
+    return None
+
+
+def validateFte(value):
+    if value and not re.match(SCALE_100_PATTERN, value):
+        return 'FTE must be number between 0-100!'
+    return None
+
+
+def validateInvestigator(value):
+    pass
 
 
 def validateEffort(value):
     if value is None or value == '':
         return 'Percent effort required!'
 
-    if value[0] == '-':
-        return 'Percent effort must be between 0-100!'
-
-    if not value.isdigit():
-        return 'Percent effort must be numeric!'
-
-    value = int(value)
-    if value < 0 or value > 100:
-        return 'Percent effort must be between 0-100!'
+    if not re.match(SCALE_100_PATTERN, value):
+        return 'Percent effort must be number between 0-100!'
 
     return None
 

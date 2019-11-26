@@ -1,11 +1,13 @@
 import unittest
 from models.validators import *
 from models.project import Project
+from models.employee import Employee
 
 
-class PrjValidationTest(unittest.TestCase):
+class ValidationTestSuite(unittest.TestCase):
     def setUp(self):
         self.prjRex = Project.get_all()
+        self.empRex = Employee.get_all()
 
     def testName(self):
         result = validatePrjName(None, self.prjRex)
@@ -98,31 +100,115 @@ class PrjValidationTest(unittest.TestCase):
         result = validateEmpName('')
         self.assertEqual(result, 'Employee name required!')
 
-        result = validateEmpName('groucho marx', chk=True)
+        result = validateEmpName('groucho marx', empRex=self.empRex)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('marx', chk=True)
+        result = validateEmpName('marx', empRex=self.empRex)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('_marx,groucho', chk=True)
+        result = validateEmpName('_marx,groucho', empRex=self.empRex)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('marx,groucho:', chk=True)
+        result = validateEmpName('marx,groucho:', empRex=self.empRex)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('marx, groucho', chk=True)
+        result = validateEmpName('colozzi, john l', empRex=self.empRex)
+        self.assertEqual(result, 'Employee name taken!')
+
+        result = validateEmpName('colozzi,john l', empRex=self.empRex)
+        self.assertEqual(result, 'Employee name taken!')
+
+        result = validateEmpName('ALDACO-REVILLA,LAURA', empRex=self.empRex)
+        self.assertEqual(result, 'Employee name taken!')
+
+        result = validateEmpName('marx, groucho', empRex=self.empRex)
         self.assertIsNone(result)
 
-        result = validateEmpName("o'marx, groucho", chk=True)
+        result = validateEmpName("o'marx, groucho", empRex=self.empRex)
         self.assertIsNone(result)
 
-        result = validateEmpName("marx, o'groucho", chk=True)
+        result = validateEmpName("marx, o'groucho", empRex=self.empRex)
         self.assertIsNone(result)
 
-        result = validateEmpName('marx-karl, groucho', chk=True)
+        result = validateEmpName('marx-karl, groucho', empRex=self.empRex)
         self.assertIsNone(result)
 
-        result = validateEmpName('marx, karl-groucho', chk=True)
+        result = validateEmpName('marx, karl-groucho', empRex=self.empRex)
+        self.assertIsNone(result)
+
+    def testGrade(self):
+        result = validateGrade(None)
+        self.assertIsNone(result)
+
+        result = validateGrade("")
+        self.assertIsNone(result)
+
+        result = validateGrade('x2')
+        self.assertEqual(result, 'Grade must be number between 0-15!')
+
+        result = validateGrade('-1')
+        self.assertEqual(result, 'Grade must be number between 0-15!')
+
+        result = validateGrade('16')
+        self.assertEqual(result, 'Grade must be number between 0-15!')
+
+        result = validateGrade('0')
+        self.assertIsNone(result)
+
+        result = validateGrade('15')
+        self.assertIsNone(result)
+
+        result = validateGrade('2')
+        self.assertIsNone(result)
+
+    def testStep(self):
+        result = validateStep(None)
+        self.assertIsNone(result)
+
+        result = validateStep("")
+        self.assertIsNone(result)
+
+        result = validateStep('x2')
+        self.assertEqual(result, 'Step must be number between 0-15!')
+
+        result = validateStep('-1')
+        self.assertEqual(result, 'Step must be number between 0-15!')
+
+        result = validateStep('16')
+        self.assertEqual(result, 'Step must be number between 0-15!')
+
+        result = validateStep('0')
+        self.assertIsNone(result)
+
+        result = validateStep('15')
+        self.assertIsNone(result)
+
+        result = validateStep('2')
+        self.assertIsNone(result)
+
+    def testFte(self):
+        result = validateFte(None)
+        self.assertIsNone(result)
+
+        result = validateFte("")
+        self.assertIsNone(result)
+
+        result = validateFte('x2')
+        self.assertEqual(result, 'FTE must be number between 0-100!')
+
+        result = validateFte('-1')
+        self.assertEqual(result, 'FTE must be number between 0-100!')
+
+        result = validateFte('101')
+        self.assertEqual(result, 'FTE must be number between 0-100!')
+
+        result = validateFte('0')
+        self.assertIsNone(result)
+
+        result = validateFte('100')
+        self.assertIsNone(result)
+
+        result = validateFte('22')
         self.assertIsNone(result)
 
     def testEffort(self):
@@ -133,13 +219,13 @@ class PrjValidationTest(unittest.TestCase):
         self.assertEqual(result, 'Percent effort required!')
 
         result = validateEffort('x2')
-        self.assertEqual(result, 'Percent effort must be numeric!')
+        self.assertEqual(result, 'Percent effort must be number between 0-100!')
 
         result = validateEffort('-1')
-        self.assertEqual(result, 'Percent effort must be between 0-100!')
+        self.assertEqual(result, 'Percent effort must be number between 0-100!')
 
         result = validateEffort('101')
-        self.assertEqual(result, 'Percent effort must be between 0-100!')
+        self.assertEqual(result, 'Percent effort must be number between 0-100!')
 
         result = validateEffort('0')
         self.assertIsNone(result)

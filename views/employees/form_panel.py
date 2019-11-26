@@ -118,68 +118,28 @@ class EmpFormPanel(wx.Panel):
             self.Parent.Close()
 
     def validate(self):
-        import re
+        import models.validators as validators
 
         value = self.txtName.GetValue().upper()
-        if value == '':
-            self.txtName.SetFocus()
-            wx.MessageBox('Employee Name required!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if value in [rec['name'].upper() for rec in gbl.empRex.values()]:
-            self.txtName.SetFocus()
-            wx.MessageBox('Employee Name taken!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if not re.match(gbl.WHOLE_NAME_PATTERN, value):
-            self.txtName.SetFocus()
-            wx.MessageBox('Employee Name invalid!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
+        errMsg = validators.validateEmpName(value, gbl.empRex)
+        if errMsg == '':
+            validators.showErrMsg(self.txtName, errMsg)
             return False
 
         value = self.txtGrade.GetValue()
-        if value:
-            if not value.isdigit():
-                self.txtGrade.SetFocus()
-                wx.MessageBox('Grade must be numeric!', 'Error!',
-                              wx.ICON_EXCLAMATION | wx.OK)
-                return False
-
-            value = int(value)
-            if value < 0 or value > 15:
-                self.txtGrade.SetFocus()
-                wx.MessageBox('Grade must be between 0-15!', 'Error!',
-                              wx.ICON_EXCLAMATION | wx.OK)
-                return False
+        errMsg = validators.validateGrade(value)
+        if errMsg:
+            validators.showErrMsg(self.txtGrade, errMsg)
+            return False
 
         value = self.txtStep.GetValue()
-        if value:
-            if not value.isdigit():
-                self.txtStep.SetFocus()
-                wx.MessageBox('Step must be numeric!', 'Error!',
-                              wx.ICON_EXCLAMATION | wx.OK)
-                return False
-
-            value = int(value)
-            if value < 0 or value > 15:
-                self.txtStep.SetFocus()
-                wx.MessageBox('Step must be between 0-15!', 'Error!',
-                              wx.ICON_EXCLAMATION | wx.OK)
-                return False
+        errMsg = validators.validateStep(value)
+        if errMsg:
+            validators.showErrMsg(self.txtStep, errMsg)
+            return False
 
         value = self.txtFte.GetValue()
-        if value:
-            if not value.isdigit():
-                self.txtFte.SetFocus()
-                wx.MessageBox('FTE must be numeric!', 'Error!',
-                              wx.ICON_EXCLAMATION | wx.OK)
-                return False
-
-            value = int(value)
-            if value < 0 or value > 100:
-                self.txtFte.SetFocus()
-                wx.MessageBox('Step must be between 0-100!', 'Error!',
-                              wx.ICON_EXCLAMATION | wx.OK)
-                return False
+        errMsg = validators.validateFte(value)
+        if errMsg:
+            validators.showErrMsg(self.txtFte, errMsg)
+            return False
