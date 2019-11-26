@@ -4,12 +4,12 @@ from views.employees.form_panel import EmpFormPanel
 
 
 class EmpDetailDlg(wx.Dialog):
-    def __init__(self, parent, winId, title, emp, asns):
+    def __init__(self, parent, winId, title, empId, asns):
         wx.Dialog.__init__(self, parent, winId, title, size=(1200, 500))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.frmPanel = EmpFormPanel(self, emp)
-        self.dtlPanel = EmpAsnListPanel(self, emp['name'] if emp else '', asns)
+        self.frmPanel = EmpFormPanel(self, empId)
+        self.dtlPanel = EmpAsnListPanel(self, empId, asns)
 
         layout.Add(self.frmPanel, 0, wx.ALL, 5)
         layout.Add(self.dtlPanel, 0, wx.ALL, 5)

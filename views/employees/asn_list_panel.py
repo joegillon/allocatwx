@@ -7,12 +7,12 @@ import utils.buttons as btn_lib
 
 
 class EmpAsnListPanel(wx.Panel):
-    def __init__(self, parent, empName, asns):
+    def __init__(self, parent, empId, asns):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.empName = empName
+        self.emp = gbl.empRex[empId] if empId else None
         self.olv = None
         self.op = None
         self.addBtn = None
@@ -34,7 +34,7 @@ class EmpAsnListPanel(wx.Panel):
 
         self.addBtn = btn_lib.toolbar_button(panel, 'Add Assignment')
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
-        if not self.empName:
+        if not self.emp:
             self.addBtn.Disable()
         layout.Add(self.addBtn, 0, wx.ALL, 5)
 
@@ -85,11 +85,11 @@ class EmpAsnListPanel(wx.Panel):
 
     def onDblClick(self, event):
         asn = event.EventObject.GetSelectedObject()
-        dlg = EmpAsnDlg(self, -1, 'Assignment Details', self.empName, asn)
+        dlg = EmpAsnDlg(self, -1, 'Assignment Details', self.emp['id'], asn)
         dlg.ShowModal()
 
     def onAddBtnClick(self, event):
-        dlg = EmpAsnDlg(self, -1, 'New Assignment', self.empName, None)
+        dlg = EmpAsnDlg(self, -1, 'New Assignment', self.emp['id'], None)
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):

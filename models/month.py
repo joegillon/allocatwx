@@ -23,6 +23,12 @@ class Month(object):
         return month[3:] + month[0:2]
 
     @staticmethod
+    def split(month):
+        if len(month) != 4:
+            return ''
+        return month[3:], month[0:2]
+
+    @staticmethod
     def getMonths(startMonth, thruMonth):
         from dateutil.relativedelta import relativedelta as rd
 
@@ -52,13 +58,13 @@ class Month(object):
 
     @staticmethod
     def isValidSpan(first, last):
-        return last >= first
+        return Month.uglify(last) >= Month.uglify(first)
 
     @staticmethod
     def isInPrjSpan(prj, first_month, last_month):
-        if first_month < prj['first_month']:
+        if Month.uglify(first_month) < prj['first_month']:
             return False
-        return last_month <= prj['last_month']
+        return Month.uglify(last_month) <= prj['last_month']
 
     @staticmethod
     def getMonthCtrl(panel, value):

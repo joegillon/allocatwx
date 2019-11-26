@@ -28,6 +28,8 @@ class PrjFormPanel(wx.Panel):
 
         self.SetSizer(layout)
 
+        self.txtName.SetFocus()
+
     def buildToolbarPanel(self):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
@@ -38,7 +40,7 @@ class PrjFormPanel(wx.Panel):
         dropBtn = btn_lib.toolbar_button(panel, 'Drop Project')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropClick)
 
-        saveBtn = btn_lib.toolbar_button(panel,  'Save Project', ok=True)
+        saveBtn = btn_lib.toolbar_button(panel,  'Save Project')
         saveBtn.Bind(wx.EVT_BUTTON, self.onSaveClick)
 
         layout.Add(dropBtn, 0, wx.ALL, 5)
@@ -128,55 +130,28 @@ class PrjFormPanel(wx.Panel):
     def onSaveClick(self, event):
         if self.validate():
             self.Parent.dtlPanel.activateAddBtn()
-            self.Parent.EndModal(wx.ID_OK)
+            self.Parent.Close()
 
     def validate(self):
-        import re
+        import models.validators as validators
 
         value = self.txtName.GetValue()
-        if value == '':
-            self.txtName.SetFocus()
-            wx.MessageBox('Project Name required!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if value in gbl.prjNames:
-            self.txtName.SetFocus()
-            wx.MessageBox('Project Name taken!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
+        errMsg = validators.validatePrjName(value, gbl.prjRex)
+        if errMsg:
+            validators.showErrMsg(self.txtName, errMsg)
             return False
 
         value = self.txtNickname.GetValue()
-        if value == '':
-            self.txtNickname.SetFocus()
-            wx.MessageBox('Project Nickname required!', 'Error!',
-                      wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if value.upper() in gbl.prjNicknames:
-            self.txtNickname.SetFocus()
-            wx.MessageBox('Project Nickname taken!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
+        errMsg = validators.validatePrjNickname(value, gbl.prjRex)
+        if errMsg:
+            validators.showErrMsg(self.txtNickname, errMsg)
             return False
 
         first_month = self.txtFirstMonth.GetValue()
-        if not re.match(gbl.MONTH_PATTERN, first_month):
-            self.txtFirstMonth.SetFocus()
-            wx.MessageBox('First Month invalid!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
         last_month = self.txtLastMonth.GetValue()
-        if not re.match(gbl.MONTH_PATTERN, last_month):
-            self.txtLastMonth.SetFocus()
-            wx.MessageBox('Last Month invalid!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
-            return False
-
-        if not Month.isValidSpan(first_month, last_month):
-            self.txtFirstMonth.SetFocus()
-            wx.MessageBox('First Month must precede Last Month!', 'Error!',
-                          wx.ICON_EXCLAMATION | wx.OK)
+        errMsg = validators.validateTimeframe(first_month, last_month)
+        if errMsg:
+            validators.showErrMsg(self.txtFirstMonth, errMsg)
             return False
 
         return True

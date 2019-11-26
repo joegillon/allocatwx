@@ -12,7 +12,8 @@ class Project(object):
     @staticmethod
     def get_all():
         sql = "SELECT * FROM projects ORDER BY nickname;"
-        return Dao.execute(sql)
+        rex = Dao.execute(sql)
+        return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
     def get_all_active():

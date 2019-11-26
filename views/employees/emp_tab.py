@@ -115,7 +115,7 @@ class EmpTab(wx.Panel):
         emp = event.EventObject.GetSelectedObject()
         asns = Employee.getAsns(emp['id'])
 
-        dlg = EmpDetailDlg(self, wx.ID_ANY, 'Employee Details', emp, asns)
+        dlg = EmpDetailDlg(self, wx.ID_ANY, 'Employee Details', emp['id'], asns)
         dlg.ShowModal()
 
     def onRightClick(self, event):

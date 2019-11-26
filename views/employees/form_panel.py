@@ -5,12 +5,18 @@ import utils.buttons as btn_lib
 
 
 class EmpFormPanel(wx.Panel):
-    def __init__(self, parent, emp=None):
+    def __init__(self, parent, empId):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.emp = emp
+        self.emp = gbl.empRex[empId] if empId else None
+        self.txtName = None
+        self.txtGrade = None
+        self.txtStep = None
+        self.txtFte = None
+        self.chkInvestigator = None
+        self.txtNotes = None
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel()
@@ -19,6 +25,8 @@ class EmpFormPanel(wx.Panel):
         layout.Add(frmPanel, 0, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizer(layout)
+
+        self.txtName.SetFocus()
 
     def buildToolbarPanel(self):
         panel = wx.Panel(
@@ -50,40 +58,47 @@ class EmpFormPanel(wx.Panel):
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblName = wx.StaticText(panel, wx.ID_ANY, 'Employee Name: ')
-        txtName = wx.TextCtrl(panel, wx.ID_ANY,
-                              displayValue(self.emp, 'name'), size=(500, -1))
+        self.txtName = wx.TextCtrl(panel, wx.ID_ANY,
+                                   displayValue(self.emp, 'name'),
+                                   size=(500, -1))
         nameLayout.Add(lblName, 0, wx.ALL, 5)
-        nameLayout.Add(txtName, 0, wx.ALL | wx.EXPAND, 5)
+        nameLayout.Add(self.txtName, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(nameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         gsfLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblGrade = wx.StaticText(panel, wx.ID_ANY, 'Grade: ')
-        txtGrade = wx.TextCtrl(panel, wx.ID_ANY,
-                               str(displayValue(self.emp, 'grade')), size=(50, -1))
+        self.txtGrade = wx.TextCtrl(panel, wx.ID_ANY,
+                               str(displayValue(self.emp, 'grade')),
+                               size=(50, -1))
         gsfLayout.Add(lblGrade, 0, wx.ALL, 5)
-        gsfLayout.Add(txtGrade, 0, wx.ALL, 5)
+        gsfLayout.Add(self.txtGrade, 0, wx.ALL, 5)
         layout.Add(gsfLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         lblStep = wx.StaticText(panel, wx.ID_ANY, 'Step: ')
-        txtStep = wx.TextCtrl(panel, wx.ID_ANY,
+        self.txtStep = wx.TextCtrl(panel, wx.ID_ANY,
                               str(displayValue(self.emp, 'step')), size=(50, -1))
         gsfLayout.Add(lblStep, 0, wx.ALL, 5)
-        gsfLayout.Add(txtStep, 0, wx.ALL, 5)
+        gsfLayout.Add(self.txtStep, 0, wx.ALL, 5)
 
         lblFte = wx.StaticText(panel, wx.ID_ANY, 'FTE: ')
-        txtFte = wx.TextCtrl(panel, wx.ID_ANY,
+        self.txtFte = wx.TextCtrl(panel, wx.ID_ANY,
                              str(displayValue(self.emp, 'fte')), size=(50, -1))
         gsfLayout.Add(lblFte, 0, wx.ALL, 5)
-        gsfLayout.Add(txtFte, 0, wx.ALL, 5)
+        gsfLayout.Add(self.txtFte, 0, wx.ALL, 5)
+
+        lblInvestigator = wx.StaticText(panel, wx.ID_ANY, 'Investigator:')
+        self.chkInvestigator = wx.CheckBox(panel, wx.ID_ANY)
+        gsfLayout.Add(lblInvestigator, 0, wx.ALL, 5)
+        gsfLayout.Add(self.chkInvestigator, 0, wx.ALL, 5)
         layout.Add(gsfLayout, 0, wx.ALL, 5)
 
         notesLayout = wx.BoxSizer(wx.VERTICAL)
         lblNotes = wx.StaticText(panel, wx.ID_ANY, 'Notes:')
-        txtNotes = wx.TextCtrl(panel, wx.ID_ANY,
+        self.txtNotes = wx.TextCtrl(panel, wx.ID_ANY,
                                displayValue(self.emp, 'notes'),
                                style=wx.TE_MULTILINE, size=(500, 200))
         notesLayout.Add(lblNotes, 0, wx.ALL, 5)
-        notesLayout.Add(txtNotes, 0, wx.ALL, 5)
+        notesLayout.Add(self.txtNotes, 0, wx.ALL, 5)
         layout.Add(notesLayout, 0, wx.ALL, 5)
 
         panel.SetSizer(layout)
@@ -95,8 +110,76 @@ class EmpFormPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            print('drop ' + str(self.prj['id']))
+            print('drop ' + str(self.emp['id']))
 
     def onSaveClick(self, event):
-        print('save ' + str(self.emp['id']))
-        self.Parent.dtlPanel.activateAddBtn()
+        if self.validate():
+            self.Parent.dtlPanel.activateAddBtn()
+            self.Parent.Close()
+
+    def validate(self):
+        import re
+
+        value = self.txtName.GetValue().upper()
+        if value == '':
+            self.txtName.SetFocus()
+            wx.MessageBox('Employee Name required!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        if value in [rec['name'].upper() for rec in gbl.empRex.values()]:
+            self.txtName.SetFocus()
+            wx.MessageBox('Employee Name taken!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        if not re.match(gbl.WHOLE_NAME_PATTERN, value):
+            self.txtName.SetFocus()
+            wx.MessageBox('Employee Name invalid!', 'Error!',
+                          wx.ICON_EXCLAMATION | wx.OK)
+            return False
+
+        value = self.txtGrade.GetValue()
+        if value:
+            if not value.isdigit():
+                self.txtGrade.SetFocus()
+                wx.MessageBox('Grade must be numeric!', 'Error!',
+                              wx.ICON_EXCLAMATION | wx.OK)
+                return False
+
+            value = int(value)
+            if value < 0 or value > 15:
+                self.txtGrade.SetFocus()
+                wx.MessageBox('Grade must be between 0-15!', 'Error!',
+                              wx.ICON_EXCLAMATION | wx.OK)
+                return False
+
+        value = self.txtStep.GetValue()
+        if value:
+            if not value.isdigit():
+                self.txtStep.SetFocus()
+                wx.MessageBox('Step must be numeric!', 'Error!',
+                              wx.ICON_EXCLAMATION | wx.OK)
+                return False
+
+            value = int(value)
+            if value < 0 or value > 15:
+                self.txtStep.SetFocus()
+                wx.MessageBox('Step must be between 0-15!', 'Error!',
+                              wx.ICON_EXCLAMATION | wx.OK)
+                return False
+
+        value = self.txtFte.GetValue()
+        if value:
+            if not value.isdigit():
+                self.txtFte.SetFocus()
+                wx.MessageBox('FTE must be numeric!', 'Error!',
+                              wx.ICON_EXCLAMATION | wx.OK)
+                return False
+
+            value = int(value)
+            if value < 0 or value > 100:
+                self.txtFte.SetFocus()
+                wx.MessageBox('Step must be between 0-100!', 'Error!',
+                              wx.ICON_EXCLAMATION | wx.OK)
+                return False
