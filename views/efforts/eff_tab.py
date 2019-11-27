@@ -57,14 +57,14 @@ class EffTab(wx.Panel):
         layout.Add(lblStart, 0, wx.ALL, 5)
 
         start = date.today()
-        self.txtStart = wx.TextCtrl(panel, wx.ID_ANY, Month.d2month(start))
+        self.txtStart = Month.getMonthCtrl(panel, Month.d2month(start))
         layout.Add(self.txtStart, 0, wx.ALL, 5)
 
         lblThru = getToolbarLabel(panel, 'Thru:')
         lblThru.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblThru, 0, wx.ALL, 5)
 
-        self.txtThru = wx.TextCtrl(panel, wx.ID_ANY, Month.datePlus(start, 12))
+        self.txtThru = Month.getMonthCtrl(panel, Month.datePlus(start, 11))
         layout.Add(self.txtThru, 0, wx.ALL, 5)
 
         btnRun = btn_lib.toolbar_button(panel, 'Run Query')
@@ -118,8 +118,11 @@ class EffTab(wx.Panel):
             self.grid.SetCellValue(rownum, 0, str(employee['id']))
             self.grid.SetCellValue(rownum, 1, employee['name'])
             self.grid.SetCellValue(rownum, 2, str(employee['fte']))
-            for colnum in range(3, len(months)):
-                self.grid.SetCellValue(rownum, colnum, str(self.rows[rownum].cells[colnum - 3].total))
+            for colnum in range(3, len(months) + 2):
+                value = self.rows[rownum].cells[colnum - 3].total
+                self.grid.SetCellValue(rownum, colnum, str(value))
+                if value < employee['fte']:
+                    self.grid.SetCellTextColour(rownum, colnum, 'red')
 
         layout = wx.BoxSizer(wx.HORIZONTAL)
         layout.Add(self.grid, 0, wx.ALL | wx.EXPAND, 5)
@@ -149,14 +152,14 @@ class EffTab(wx.Panel):
             for month in months:
                 cell = EffCell(month)
                 for emp_asn in self.emp_asns[emp]:
-                    if Month.uglify(month) < emp_asn['first_month'] or month > emp_asn['last_month']:
+                    uglyMo = Month.uglify(month)
+                    if uglyMo < emp_asn['first_month'] or uglyMo > emp_asn['last_month']:
                         continue
                     cell.total += emp_asn['effort']
                     cell.efforts.append(
                         PercentEffort(emp_asn['project'], emp_asn['effort']))
                 row.cells.append(cell)
-            if row.cells:
-                self.rows.append(row)
+            self.rows.append(row)
 
         self.breakdowns = self.build_breakdowns()
 
@@ -187,3 +190,7 @@ class EffTab(wx.Panel):
                 k = '%s:%s' % (row.employee, cell.month)
                 d[k] = [{'project': pe.prj, 'percent': pe.percent} for pe in cell.efforts]
         return d
+
+
+def getFteHrs(fte):
+    return int(40 * fte / 100)

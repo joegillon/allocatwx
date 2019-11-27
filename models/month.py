@@ -35,9 +35,9 @@ class Month(object):
         start_date = Month.month2d(startMonth)
         thru_date = Month.month2d(thruMonth)
         months = []
-        while start_date < thru_date:
-            start_date = start_date + rd(months=1)
+        while start_date <= thru_date:
             months.append(Month.d2month(start_date))
+            start_date = start_date + rd(months=1)
         return months
 
     @staticmethod
