@@ -45,52 +45,55 @@ class ValidationTestSuite(unittest.TestCase):
         result = validateTimeframe('', '')
         self.assertEqual(result, 'First month invalid!')
 
-        result = validateTimeframe('00/', '')
+        result = validateTimeframe('00', '')
         self.assertEqual(result, 'First month invalid!')
 
-        result = validateTimeframe('01/', '')
+        result = validateTimeframe('01', '')
         self.assertEqual(result, 'First month invalid!')
 
-        result = validateTimeframe('01/0', '')
+        result = validateTimeframe('010', '')
         self.assertEqual(result, 'First month invalid!')
 
-        result = validateTimeframe('00/00', '')
+        result = validateTimeframe('0000', '')
         self.assertEqual(result, 'First month invalid!')
 
-        result = validateTimeframe('13/00', '')
+        result = validateTimeframe('0013', '')
         self.assertEqual(result, 'First month invalid!')
 
-        result = validateTimeframe('01/00', '')
+        result = validateTimeframe('0001', '')
         self.assertEqual(result, 'Last month invalid!')
 
-        result = validateTimeframe('01/00', '00/')
+        result = validateTimeframe('0001', '00')
         self.assertEqual(result, 'Last month invalid!')
 
-        result = validateTimeframe('01/00', '01/0')
+        result = validateTimeframe('0001', '010')
         self.assertEqual(result, 'Last month invalid!')
 
-        result = validateTimeframe('01/00', '00/00')
+        result = validateTimeframe('0001', '0000')
         self.assertEqual(result, 'Last month invalid!')
 
-        result = validateTimeframe('01/00', '13/00')
+        result = validateTimeframe('0001', '0013')
         self.assertEqual(result, 'Last month invalid!')
 
-        result = validateTimeframe('02/19', '01/19')
+        result = validateTimeframe('0001', '00131')
+        self.assertEqual(result, 'Last month invalid!')
+
+        result = validateTimeframe('1902', '1901')
         self.assertEqual(result, 'First Month must precede Last Month!')
 
-        result = validateTimeframe('01/19', '12/18')
+        result = validateTimeframe('1901', '1812')
         self.assertEqual(result, 'First Month must precede Last Month!')
 
-        result = validateTimeframe('12/19', '01/20')
+        result = validateTimeframe('1912', '2001')
         self.assertIsNone(result)
 
-        result = validateTimeframe('06/14', '06/19', self.prjRex[26])
+        result = validateTimeframe('1406', '1906', self.prjRex[26])
         self.assertEqual(result, 'Timeframe outside project timeframe!')
 
-        result = validateTimeframe('07/14', '07/19', self.prjRex[26])
+        result = validateTimeframe('1407', '1907', self.prjRex[26])
         self.assertEqual(result, 'Timeframe outside project timeframe!')
 
-        result = validateTimeframe('07/14', '06/19', self.prjRex[26])
+        result = validateTimeframe('1407', '1906', self.prjRex[26])
         self.assertIsNone(result)
 
     def testEmpName(self):

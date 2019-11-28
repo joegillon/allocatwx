@@ -58,13 +58,13 @@ class Month(object):
 
     @staticmethod
     def isValidSpan(first, last):
-        return Month.uglify(last) >= Month.uglify(first)
+        return last >= first
 
     @staticmethod
     def isInPrjSpan(prj, first_month, last_month):
-        if Month.uglify(first_month) < prj['first_month']:
+        if first_month < prj['first_month']:
             return False
-        return Month.uglify(last_month) <= prj['last_month']
+        return last_month <= prj['last_month']
 
     @staticmethod
     def getMonthCtrl(panel, value):

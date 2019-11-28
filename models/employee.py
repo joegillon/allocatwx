@@ -53,7 +53,7 @@ class Employee(object):
 
     @staticmethod
     def add(d):
-        del d['id']
+        d['active'] = 1
         sql = "INSERT INTO employees (%s) VALUES (%s);" % (
             ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
         )
@@ -61,14 +61,12 @@ class Employee(object):
         return Dao.execute(sql, vals)
 
     @staticmethod
-    def update(d):
-        empid = d['id']
-        del d['id']
+    def update(empId, d):
         sql = ("UPDATE employees "
                "SET %s "
                "WHERE id=?;") % (
             ','.join(f + '=?' for f in d.keys()))
-        vals = list(d.values()) + [empid]
+        vals = list(d.values()) + [empId]
         return Dao.execute(sql, vals)
 
     @staticmethod

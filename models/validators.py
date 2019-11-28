@@ -3,7 +3,7 @@ import wx
 from utils.strutils import dropAllWhitespace
 from models.month import Month
 
-MONTH_PATTERN = r"^(0?[1-9]|1[012])/[0-9]{2}$"
+MONTH_PATTERN = r"^[0-9]{2}(0[1-9]|1[0-2])$"
 WHOLE_NAME_PATTERN = r"^[A-Z'\-]+,[\s]*[A-Z' \-]+$"
 SCALE_100_PATTERN = r"^[0-9][0-9]?$|^100$"
 SCALE_15_PATTERN = r"^[0-9]$|^1[0-5]$"

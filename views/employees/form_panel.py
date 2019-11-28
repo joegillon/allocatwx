@@ -1,6 +1,7 @@
 import wx
 from utils.strutils import displayValue
 import models.globals as gbl
+from models.employee import Employee
 import utils.buttons as btn_lib
 
 
@@ -17,6 +18,7 @@ class EmpFormPanel(wx.Panel):
         self.txtFte = None
         self.chkInvestigator = None
         self.txtNotes = None
+        self.formData = None
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel()
@@ -110,36 +112,47 @@ class EmpFormPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            print('drop ' + str(self.emp['id']))
+            result = Employee.delete([self.emp['id']])
+            print(result)
 
     def onSaveClick(self, event):
         if self.validate():
+            if self.emp is None:
+                result = Employee.add(self.formData)
+                print(result)
+            else:
+                result = Employee.update(self.emp['id'], self.formData)
+                print(result)
             self.Parent.dtlPanel.activateAddBtn()
             self.Parent.Close()
+
+    def getFormData(self):
+        self.formData['name'] = self.txtName.GetValue()
+        self.formData['grade'] = self.txtGrade.GetValue()
+        self.formData['step'] = self.txtStep.GetValue()
+        self.formData['fte'] = self.txtFte.GetValue()
+        self.formData['investigator'] = self.chkInvestigator.GetValue()
+        self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self):
         import models.validators as validators
 
-        value = self.txtName.GetValue().upper()
-        errMsg = validators.validateEmpName(value, gbl.empRex)
+        errMsg = validators.validateEmpName(self.formData['name'], gbl.empRex)
         if errMsg == '':
             validators.showErrMsg(self.txtName, errMsg)
             return False
 
-        value = self.txtGrade.GetValue()
-        errMsg = validators.validateGrade(value)
+        errMsg = validators.validateGrade(self.formData['grade'])
         if errMsg:
             validators.showErrMsg(self.txtGrade, errMsg)
             return False
 
-        value = self.txtStep.GetValue()
-        errMsg = validators.validateStep(value)
+        errMsg = validators.validateStep(self.formData['step'])
         if errMsg:
             validators.showErrMsg(self.txtStep, errMsg)
             return False
 
-        value = self.txtFte.GetValue()
-        errMsg = validators.validateFte(value)
+        errMsg = validators.validateFte(self.formData['fte'])
         if errMsg:
             validators.showErrMsg(self.txtFte, errMsg)
             return False

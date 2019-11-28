@@ -93,6 +93,8 @@ class PrjAsnListPanel(wx.Panel):
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
+        from models.project import Project
+
         ids = [x['id'] for x in self.olv.GetSelectedObjects()]
         if not ids:
             wx.MessageBox('No assignments selected!', 'Oops!',
@@ -102,7 +104,8 @@ class PrjAsnListPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            print(ids)
+            result = Project.delete(ids)
+            print(result)
 
     def activateAddBtn(self):
         self.addBtn.Enable()

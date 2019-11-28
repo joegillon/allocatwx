@@ -36,7 +36,7 @@ class Assignment(object):
 
     @staticmethod
     def add(d):
-        del d['id']
+        d['active'] = 1
         sql = "INSERT INTO assignments (%s) VALUES (%s);" % (
             ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
         )
@@ -44,14 +44,12 @@ class Assignment(object):
         return Dao.execute(sql, vals)
 
     @staticmethod
-    def update(d):
-        asnid = d['id']
-        del d['id']
+    def update(asnId, d):
         sql = ("UPDATE assignments "
                "SET %s "
                "WHERE id=?;") % (
             ','.join(f + '=?' for f in d.keys()))
-        vals = list(d.values()) + [asnid]
+        vals = list(d.values()) + [asnId]
         return Dao.execute(sql, vals)
 
     @staticmethod

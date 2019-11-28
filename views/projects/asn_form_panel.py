@@ -18,6 +18,7 @@ class PrjAsnFormPanel(wx.Panel):
         self.txtLastMonth = None
         self.txtEffort = None
         self.txtNotes = None
+        self.formData = None
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel(prjId)
@@ -112,31 +113,52 @@ class PrjAsnFormPanel(wx.Panel):
         return panel
 
     def onSaveClick(self, event):
+        from models.assignment import Assignment
+
         if self.validate():
-            print('save ' + str(self.asn['id']))
+            d = self.formData
+            if self.asn is None:
+                empId = None
+                for empId, empRec in gbl.empRex.items():
+                    if empRec['name'] == self.formData['empName']:
+                        break
+                d['employee_id'] = empId
+                d['project_id'] = self.prj['id']
+                result = Assignment.add(d)
+                print(result)
+            else:
+                d['employee_id'] = self.asn['employee_id']
+                d['project_id'] = self.asn['project_id']
+                result = Assignment.update(self.asn['id'], d)
+                print(result)
         else:
             return
         self.Parent.Close()
+
+    def getFormData(self):
+        self.formData['empName'] = self.cboEmp.GetValue()
+        self.formData['first_month'] = self.txtFirstMonth.GetValue()
+        self.formData['last_month'] = self.txtLastMonth.GetValue()
+        self.formData['effort'] = self.txtEffort.GetValue()
+        self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self):
         import models.validators as validators
 
         if self.cboEmp:
-            value = self.cboEmp.GetValue()
-            errMsg = validators.validateEmpName(value)
+            errMsg = validators.validateEmpName(self.formData['empName'])
             if errMsg:
                 validators.showErrMsg(self.cboEmp, errMsg)
                 return False
 
-        first_month = self.txtFirstMonth.GetValue()
-        last_month = self.txtLastMonth.GetValue()
-        errMsg = validators.validateTimeframe(first_month, last_month)
+        errMsg = validators.validateTimeframe(
+            self.formData['first_month'],
+            self.formData['last_month'])
         if errMsg:
             validators.showErrMsg(self.txtFirstMonth, errMsg)
             return False
 
-        value = self.txtEffort.GetValue()
-        errMsg = validators.validateEffort(value)
+        errMsg = validators.validateEffort(self.formData['effort'])
         if errMsg:
             validators.showErrMsg(self.txtEffort, errMsg)
             return False

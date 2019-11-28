@@ -1,6 +1,7 @@
 import wx
 from utils.strutils import displayValue
 import models.globals as gbl
+from models.project import Project
 from models.month import Month
 import utils.buttons as btn_lib
 
@@ -19,6 +20,7 @@ class PrjFormPanel(wx.Panel):
         self.cboPI = None
         self.cboPM = None
         self.txtNotes = None
+        self.formData = None
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel()
@@ -125,31 +127,47 @@ class PrjFormPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            print('drop ' + str(self.prj['id']))
+            result = Project.delete([self.prj['id']])
+            print(result)
 
     def onSaveClick(self, event):
+        self.getFormData()
+
         if self.validate():
+            if self.prj is None:
+                result = Project.add(self.formData)
+                print(result)
+            else:
+                result = Project.update(self.prj['id'], self.formData)
+                print(result)
             self.Parent.dtlPanel.activateAddBtn()
             self.Parent.Close()
+
+    def getFormData(self):
+        self.formData['name'] = self.txtName.GetValue()
+        self.formData['nickname'] = self.txtNickname.GetValue()
+        self.formData['first_month'] = Month.uglify(self.txtFirstMonth.GetValue())
+        self.formData['last_month'] = Month.uglify(self.txtLastMonth.GetValue())
+        self.formData['PI'] = self.cboPI.GetValue()
+        self.formData['PM'] = self.cboPM.GetValue()
+        self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self):
         import models.validators as validators
 
-        value = self.txtName.GetValue()
-        errMsg = validators.validatePrjName(value, gbl.prjRex)
+        errMsg = validators.validatePrjName(self.formData['name'], gbl.prjRex)
         if errMsg:
             validators.showErrMsg(self.txtName, errMsg)
             return False
 
-        value = self.txtNickname.GetValue()
-        errMsg = validators.validatePrjNickname(value, gbl.prjRex)
+        errMsg = validators.validatePrjNickname(self.formData['nickname'], gbl.prjRex)
         if errMsg:
             validators.showErrMsg(self.txtNickname, errMsg)
             return False
 
-        first_month = self.txtFirstMonth.GetValue()
-        last_month = self.txtLastMonth.GetValue()
-        errMsg = validators.validateTimeframe(first_month, last_month)
+        errMsg = validators.validateTimeframe(
+            self.formData['first_month'],
+            self.formData['last_month'])
         if errMsg:
             validators.showErrMsg(self.txtFirstMonth, errMsg)
             return False

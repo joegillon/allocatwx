@@ -136,7 +136,8 @@ class EmpTab(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            print(ids)
+            result = Employee.delete(ids)
+            print(result)
 
     def onFltr(self, event):
         c = chr(event.GetUnicodeKey())
