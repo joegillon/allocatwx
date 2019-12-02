@@ -1,50 +1,58 @@
 import sqlite3
+import models.globals as gbl
 
 
 class Dao(object):
-
-    @staticmethod
-    def execute(sql, params=None):
-        cxn = sqlite3.connect('c:/bench/allocatwx/data/allocat.db')
-        op = sql.split(' ', 1)[0].upper()
-        if op == 'SELECT':
-            result = Dao.__query(cxn, sql, params)
+    def __init__(self, stateful=None, db=None):
+        if db:
+            self.__db = db
         else:
-            result = Dao.__save(op, cxn, sql, params)
-        cxn.close()
+            self.__db = sqlite3.connect(gbl.DB_PATH)
+
+        # This is so project and employee deletes will also drop
+        # their assignments
+        self.__db.execute('PRAGMA FOREIGN_KEYS = ON')
+
+        self.__cursor = self.__db.cursor()
+        self.__sql = ''
+        self.__params = []
+        self.__stateful = stateful
+
+    def execute(self, sql, params=None):
+        self.__sql = sql
+        self.__params = params
+        op = self.__sql.split(' ', 1)[0].upper()
+        if op == 'SELECT':
+            result = self.__read()
+        else:
+            self.__write()
+            if op == 'INSERT':
+                return self.__cursor.lastrowid
+            else:
+                return self.__cursor.rowcount
+        if not self.__stateful:
+            self.__db.close()
         return result
 
-    @staticmethod
-    def __query(cxn, sql, params=None):
-        cursor = cxn.cursor()
-        if params:
-            rows = cursor.execute(sql, params).fetchall()
+    def __read(self):
+        # Seems you can't pass a None type to the execute func.
+        if self.__params:
+            n = self.__cursor.execute(self.__sql, self.__params)
         else:
-            rows = cursor.execute(sql).fetchall()
-        flds = [f[0] for f in cursor.description]
-        return [dict(zip(flds, row)) for row in rows] if rows else []
+            n = self.__cursor.execute(self.__sql)
+        if not n:
+            return []
+        rex = self.__cursor.fetchall()
+        flds = [f[0] for f in self.__cursor.description]
+        return [dict(zip(flds, rec)) for rec in rex] if rex else []
+
+    def __write(self):
+        self.__cursor.execute(self.__sql, self.__params)
+        self.__db.commit()
+
+    def close(self):
+        self.__db.close()
 
     @staticmethod
-    def __save(op, cxn, sql, params):
-        cursor = cxn.cursor()
-        cursor.execute(sql, params)
-        cxn.commit()
-        if op == 'INSERT':
-            return cursor.lastrowid
-        else:
-            return cursor.rowcount
-
-    @staticmethod
-    def transaction(sqls):
-        cxn = sqlite3.connect(dbfile)
-        cxn.isolation_level = None
-        cursor = cxn.cursor()
-        try:
-            cursor.execute('BEGIN')
-            for sql in sqls:
-                cursor.execute(sql)
-            cursor.execute('COMMIT')
-            return True
-        except cxn.error:
-            cursor.execute('ROLLBACK')
-            return False
+    def get_param_string(param_list):
+        return ('?,' * len(param_list))[0:-1]

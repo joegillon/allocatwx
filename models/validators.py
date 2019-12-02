@@ -1,6 +1,6 @@
 import re
 import wx
-from utils.strutils import dropAllWhitespace
+from utils.strutils import set2compare
 from models.month import Month
 
 MONTH_PATTERN = r"^[0-9]{2}(0[1-9]|1[0-2])$"
@@ -9,25 +9,28 @@ SCALE_100_PATTERN = r"^[0-9][0-9]?$|^100$"
 SCALE_15_PATTERN = r"^[0-9]$|^1[0-5]$"
 
 
-def validatePrjName(value, prjRex=None):
+def validatePrjName(value, match=None):
     if value is None or value == '':
         return 'Project name required!'
 
-    if prjRex:
-        testNames = [dropAllWhitespace(rec['name'].upper()) for rec in prjRex.values()]
-        if dropAllWhitespace(value.upper()) in testNames:
-            return 'Project name taken!'
+    if match:
+        target = set2compare(value)
+        if target in match.values:
+            if match.values[target] != match.id:
+                return 'Project name taken!'
 
     return None
 
 
-def validatePrjNickname(value, prjRex):
+def validatePrjNickname(value, match=None):
     if value is None or value == '':
         return 'Project nickname required!'
 
-    testNames = [dropAllWhitespace(rec['nickname'].upper()) for rec in prjRex.values()]
-    if dropAllWhitespace(value.upper()) in testNames:
-        return 'Project nickname taken!'
+    if match:
+        target = set2compare(value)
+        if target in match.values:
+            if match.id == 0 or match.values[target] != match.id:
+                return 'Project nickname taken!'
 
     return None
 
@@ -49,17 +52,18 @@ def validateTimeframe(firstMonth, lastMonth, prj=None):
     return None
 
 
-def validateEmpName(value, empRex=None):
+def validateEmpName(value, match=None):
     if value is None or value == '':
         return 'Employee name required!'
 
-    if empRex:
+    if match:
         if not re.match(WHOLE_NAME_PATTERN, value.upper()):
             return 'Employee name invalid!'
 
-        testNames = [dropAllWhitespace(rec['name'].upper()) for rec in empRex.values()]
-        if dropAllWhitespace(value.upper()) in testNames:
-            return 'Employee name taken!'
+        target = set2compare(value)
+        if target in match.names:
+            if match.names[target] != match.id:
+                return 'Employee name taken!'
 
     return None
 

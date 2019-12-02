@@ -140,8 +140,9 @@ class EffTab(wx.Panel):
 
     def buildDataSet(self, start, thru, months):
         from models.assignment import Assignment
+        from models.dao import Dao
 
-        asns = Assignment.get_for_timeframe(start, thru)
+        asns = Assignment.get_for_timeframe(Dao(), start, thru)
         self.emp_asns = {emp['id']: [] for emp in gbl.empRex.values()}
 
         for asn in asns:

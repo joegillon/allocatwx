@@ -21,7 +21,7 @@ def displayValue(obj, attr):
 def toYN(value):
     return 'Y' if value else 'N'
 
-def dropAllWhitespace(s):
+def set2compare(s):
     import string
 
-    return s.translate({ord(c): None for c in string.whitespace})
+    return s.translate({ord(c): None for c in string.whitespace}).upper()

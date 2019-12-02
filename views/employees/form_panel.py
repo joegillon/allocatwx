@@ -59,7 +59,7 @@ class EmpFormPanel(wx.Panel):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblName = wx.StaticText(panel, wx.ID_ANY, 'Employee Name: ')
+        lblName = wx.StaticText(panel, wx.ID_ANY, 'Employee Name: *')
         self.txtName = wx.TextCtrl(panel, wx.ID_ANY,
                                    displayValue(self.emp, 'name'),
                                    size=(500, -1))

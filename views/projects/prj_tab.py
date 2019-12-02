@@ -3,7 +3,9 @@ from ObjectListView import ObjectListView, ColumnDefn, Filter
 from views.projects.detail_dlg import PrjDetailDlg
 from models.project import Project
 import models.globals as gbl
+from models.dao import Dao
 from utils.strutils import getWidestTextExtent
+from utils.ui_utils import getToolbarLabel
 from models.month import Month
 import utils.buttons as btn_lib
 
@@ -33,9 +35,6 @@ class PrjTab(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        font = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL,
-                       wx.FONTWEIGHT_BOLD)
-
         addBtn = btn_lib.toolbar_button(panel, 'Add Project')
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         layout.Add(addBtn, 0, wx.ALL, 5)
@@ -44,23 +43,23 @@ class PrjTab(wx.Panel):
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
-        lblNickFltr = wx.StaticText(panel, wx.ID_ANY, 'Nickname:')
-        lblNickFltr.SetFont(font)
+        lblNickFltr = getToolbarLabel(panel, 'Nickname:')
         lblNickFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNickFltr, 0, wx.ALL, 5)
 
-        nickFltr = wx.SearchCtrl(panel, wx.ID_ANY, '', style=wx.TE_PROCESS_ENTER, name='nickFltr')
+        nickFltr = wx.SearchCtrl(panel, wx.ID_ANY, '',
+                                 style=wx.TE_PROCESS_ENTER, name='nickFltr')
         nickFltr.ShowCancelButton(True)
         nickFltr.Bind(wx.EVT_CHAR, self.onFltr)
         nickFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
         layout.Add(nickFltr, 0, wx.ALL, 5)
 
-        lblNotesFltr = wx.StaticText(panel, wx.ID_ANY, 'Notes')
-        lblNotesFltr.SetFont(font)
+        lblNotesFltr = getToolbarLabel(panel, 'Notes')
         lblNotesFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNotesFltr, 0, wx.ALL, 5)
 
-        notesFltr = wx.SearchCtrl(panel, wx.ID_ANY, style=wx.TE_PROCESS_ENTER, name='notesFltr')
+        notesFltr = wx.SearchCtrl(panel, wx.ID_ANY,
+                                  style=wx.TE_PROCESS_ENTER, name='notesFltr')
         notesFltr.ShowCancelButton(True)
         notesFltr.Bind(wx.EVT_CHAR, self.onFltr)
         notesFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
@@ -113,7 +112,7 @@ class PrjTab(wx.Panel):
 
     def onDblClick(self, event):
         prj = event.EventObject.GetSelectedObject()
-        asns = Project.getAsns(prj['id'])
+        asns = Project.getAsns(Dao(), prj['id'])
 
         dlg = PrjDetailDlg(self, wx.ID_ANY, 'Project Details', prj['id'], asns)
         dlg.ShowModal()
@@ -136,7 +135,7 @@ class PrjTab(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = Project.delete(ids)
+            result = Project.delete(Dao(), ids)
             print(result)
 
     def onFltr(self, event):

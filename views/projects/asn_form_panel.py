@@ -1,7 +1,6 @@
 import wx
 import models.globals as gbl
 from models.month import Month
-from utils.strutils import displayValue
 import utils.buttons as btn_lib
 
 
@@ -61,7 +60,7 @@ class PrjAsnFormPanel(wx.Panel):
         layout.Add(prjLayout)
 
         empLayout = wx.BoxSizer(wx.HORIZONTAL)
-        value = 'Employee: %s' % displayValue(self.asn, 'employee')
+        value = 'Employee: %s' % (self.asn['employee'],) if self.asn else 'Employee: *'
         lblEmp = wx.StaticText(panel, wx.ID_ANY, value)
         empLayout.Add(lblEmp, 0, wx.ALL, 5)
         if not self.asn:
@@ -77,13 +76,13 @@ class PrjAsnFormPanel(wx.Panel):
 
         intervalLayout = wx.BoxSizer(wx.HORIZONTAL)
 
-        lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: ')
+        lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: *')
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         value = self.asn['first_month'] if self.asn else ''
         self.txtFirstMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(self.txtFirstMonth, 0, wx.ALL, 5)
 
-        lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: ')
+        lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: *')
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
         value = self.asn['last_month'] if self.asn else ''
         self.txtLastMonth = Month.getMonthCtrl(panel, value)
@@ -92,7 +91,7 @@ class PrjAsnFormPanel(wx.Panel):
         layout.Add(intervalLayout)
 
         effLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblEffort = wx.StaticText(panel, wx.ID_ANY, '% Effort: ')
+        lblEffort = wx.StaticText(panel, wx.ID_ANY, '% Effort: *')
         effLayout.Add(lblEffort, 0, wx.ALL, 5)
         value = str(self.asn['effort']) if self.asn else ''
         self.txtEffort = wx.TextCtrl(panel, wx.ID_ANY, value, size=(50, -1))

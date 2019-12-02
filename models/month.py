@@ -73,6 +73,7 @@ class Month(object):
 
         ctl = masked.TextCtrl(panel, -1, mask='##/##',
                                defaultValue=Month.prettify(value),
-                               size=(50, -1))
+                               size=(50, -1),
+                                formatcodes='0>')
         ctl.SetFont(Font(9, 70, 90, 90))
         return ctl

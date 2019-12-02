@@ -1,44 +1,64 @@
 import unittest
 from models.validators import *
-from models.project import Project
-from models.employee import Employee
-
+from models.project import ProjectMatch
+from models.employee import EmployeeMatch
 
 class ValidationTestSuite(unittest.TestCase):
     def setUp(self):
-        self.prjRex = Project.get_all()
-        self.empRex = Employee.get_all()
+        self.prjNames = {
+            'TESTNAME1': 41,
+            'TESTNAME2': 23,
+            'TESTNAME3': 18
+        }
+        self.prjNicknames = {
+            'TESTNICKNAME1': 41,
+            'TESTNICKNAME2': 23,
+            'TESTNICKNAME3': 18
+        }
+        self.empNames = {
+            'MARX,GROUCHO': 1,
+            'MARX,CHICO': 2,
+            'MARX,HARPO': 3,
+            'NAME-HYPHENATED,BOZO': 99
+        }
 
     def testName(self):
-        result = validatePrjName(None, self.prjRex)
+        # Set current project to ID 18 (Test Name 3)
+        prj_match = ProjectMatch(18, self.prjNames)
+
+        result = validatePrjName(None, prj_match)
         self.assertEqual(result, 'Project name required!')
 
-        result = validatePrjName('', self.prjRex)
+        result = validatePrjName('', prj_match)
         self.assertEqual(result, 'Project name required!')
 
-        value = 'CDA 17-169 Assessing Treatment Delay and Resource Use to Improve Value of Pre-Surgical Care'
-        result = validatePrjName(value, self.prjRex)
+        result = validatePrjName('test  name 2', prj_match)
         self.assertEqual(result, 'Project name taken!')
 
-        value = 'Unused project name'
-        result = validatePrjName(value, self.prjRex)
+        # Now we have a match but it's the current project
+        result = validatePrjName('test  name 3', prj_match)
+        self.assertIsNone(result)
+
+        result = validatePrjName('Unused project name', prj_match)
         self.assertIsNone(result)
 
     def testNickname(self):
-        value = None
-        result = validatePrjNickname(value, self.prjRex)
+        # Set current project to ID 18 (Test Name 3)
+        prj_match = ProjectMatch(18, self.prjNicknames)
+
+        result = validatePrjNickname(None, prj_match)
         self.assertEqual(result, 'Project nickname required!')
 
-        value = ''
-        result = validatePrjNickname(value, self.prjRex)
+        result = validatePrjNickname('', prj_match)
         self.assertEqual(result, 'Project nickname required!')
 
-        value = 'CDA 17-169 (Sears)'
-        result = validatePrjNickname(value, self.prjRex)
+        result = validatePrjNickname('test  nickname 1', prj_match)
         self.assertEqual(result, 'Project nickname taken!')
 
-        value = 'Unused project nickname'
-        result = validatePrjNickname(value, self.prjRex)
+        result = validatePrjNickname('test  nickname 3', prj_match)
+        self.assertIsNone(result)
+
+        result = validatePrjNickname('Unused project nickname', prj_match)
         self.assertIsNone(result)
 
     def testTimeframe(self):
@@ -87,56 +107,66 @@ class ValidationTestSuite(unittest.TestCase):
         result = validateTimeframe('1912', '2001')
         self.assertIsNone(result)
 
-        result = validateTimeframe('1406', '1906', self.prjRex[26])
+        prj = {
+            'name': 'Any name',
+            'nickname': 'Any nickname',
+            'first_month': '1407',
+            'last_month': '1906'
+        }
+        result = validateTimeframe('1406', '1906', prj)
         self.assertEqual(result, 'Timeframe outside project timeframe!')
 
-        result = validateTimeframe('1407', '1907', self.prjRex[26])
+        prj['first_month'] = '1407'
+        result = validateTimeframe('1407', '1907', prj)
         self.assertEqual(result, 'Timeframe outside project timeframe!')
 
-        result = validateTimeframe('1407', '1906', self.prjRex[26])
+        prj['last_month'] = '1906'
+        result = validateTimeframe('1407', '1906', prj)
         self.assertIsNone(result)
 
     def testEmpName(self):
+        emp_match = EmployeeMatch(1, self.empNames)
+
         result = validateEmpName(None)
         self.assertEqual(result, 'Employee name required!')
 
         result = validateEmpName('')
         self.assertEqual(result, 'Employee name required!')
 
-        result = validateEmpName('groucho marx', empRex=self.empRex)
+        result = validateEmpName('groucho marx', emp_match)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('marx', empRex=self.empRex)
+        result = validateEmpName('marx', emp_match)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('_marx,groucho', empRex=self.empRex)
+        result = validateEmpName('_marx,groucho', emp_match)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('marx,groucho:', empRex=self.empRex)
+        result = validateEmpName('marx,groucho:', emp_match)
         self.assertEqual(result, 'Employee name invalid!')
 
-        result = validateEmpName('colozzi, john l', empRex=self.empRex)
+        result = validateEmpName('marx,  groucho', emp_match)
+        self.assertIsNone(result)
+
+        result = validateEmpName('marx,harpo', emp_match)
         self.assertEqual(result, 'Employee name taken!')
 
-        result = validateEmpName('colozzi,john l', empRex=self.empRex)
+        result = validateEmpName('name-hyphenated,bozo', emp_match)
         self.assertEqual(result, 'Employee name taken!')
 
-        result = validateEmpName('ALDACO-REVILLA,LAURA', empRex=self.empRex)
-        self.assertEqual(result, 'Employee name taken!')
-
-        result = validateEmpName('marx, groucho', empRex=self.empRex)
+        result = validateEmpName('marx, zeppo', emp_match)
         self.assertIsNone(result)
 
-        result = validateEmpName("o'marx, groucho", empRex=self.empRex)
+        result = validateEmpName("o'marx, groucho", emp_match)
         self.assertIsNone(result)
 
-        result = validateEmpName("marx, o'groucho", empRex=self.empRex)
+        result = validateEmpName("marx, o'groucho", emp_match)
         self.assertIsNone(result)
 
-        result = validateEmpName('marx-karl, groucho', empRex=self.empRex)
+        result = validateEmpName('marx-karl, groucho', emp_match)
         self.assertIsNone(result)
 
-        result = validateEmpName('marx, karl-groucho', empRex=self.empRex)
+        result = validateEmpName('marx, karl-groucho', emp_match)
         self.assertIsNone(result)
 
     def testGrade(self):

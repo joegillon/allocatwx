@@ -3,6 +3,7 @@ from ObjectListView import ObjectListView, ColumnDefn, Filter
 from views.employees.detail_dlg import EmpDetailDlg
 from models.employee import Employee
 import models.globals as gbl
+from models.dao import Dao
 from utils.strutils import getWidestTextExtent, toYN
 from utils.ui_utils import getToolbarLabel
 import utils.buttons as btn_lib
@@ -14,6 +15,7 @@ class EmpTab(wx.Panel):
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
+        # Need properties for the filters
         self.olv = None
         self.srchValue = ''
 
@@ -44,7 +46,8 @@ class EmpTab(wx.Panel):
         lblNameFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNameFltr, 0, wx.ALL, 5)
 
-        nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '', style=wx.TE_PROCESS_ENTER, name='nameFltr')
+        nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '',
+                                 style=wx.TE_PROCESS_ENTER, name='nameFltr')
         nameFltr.ShowCancelButton(True)
         nameFltr.Bind(wx.EVT_CHAR, self.onFltr)
         nameFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
@@ -54,7 +57,8 @@ class EmpTab(wx.Panel):
         lblNotesFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNotesFltr, 0, wx.ALL, 5)
 
-        notesFltr = wx.SearchCtrl(panel, wx.ID_ANY, style=wx.TE_PROCESS_ENTER, name='notesFltr')
+        notesFltr = wx.SearchCtrl(panel, wx.ID_ANY,
+                                  style=wx.TE_PROCESS_ENTER, name='notesFltr')
         notesFltr.ShowCancelButton(True)
         notesFltr.Bind(wx.EVT_CHAR, self.onFltr)
         notesFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
@@ -113,7 +117,7 @@ class EmpTab(wx.Panel):
 
     def onDblClick(self, event):
         emp = event.EventObject.GetSelectedObject()
-        asns = Employee.getAsns(emp['id'])
+        asns = Employee.getAsns(Dao(), emp['id'])
 
         dlg = EmpDetailDlg(self, wx.ID_ANY, 'Employee Details', emp['id'], asns)
         dlg.ShowModal()
@@ -136,7 +140,7 @@ class EmpTab(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = Employee.delete(ids)
+            result = Employee.delete(Dao(), ids)
             print(result)
 
     def onFltr(self, event):

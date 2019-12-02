@@ -1,30 +1,41 @@
-from models.dao import Dao
+from collections import namedtuple
+
+ProjectMatch = namedtuple('ProjectMatch', 'id values' )
 
 
 class Project(object):
-    def __init__(self, name, nickname, first_month, last_month, notes):
-        self.name = name
-        self.nickname = nickname
-        self.first_month = first_month
-        self.last_month = last_month
-        self.notes = notes
 
     @staticmethod
-    def get_all():
+    def get_all(dao):
         sql = "SELECT * FROM projects ORDER BY nickname;"
-        rex = Dao.execute(sql)
+        rex = dao.execute(sql)
         return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
-    def get_all_active():
+    def get_all_active(dao):
         sql = ("SELECT * FROM projects "
                "WHERE active=1 "
                "ORDER BY nickname;")
-        rex = Dao.execute(sql)
+        rex = dao.execute(sql)
         return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
-    def getAsns(prjid, month=None):
+    def get_one(dao, prjId):
+        sql = "SELECT * FROM projects WHERE id=?"
+        return dao.execute(sql, (prjId,))[0]
+
+    @staticmethod
+    def get_by_name(dao, name):
+        sql = "SELECT * FROM projects WHERE name=?"
+        return dao.execute(sql, (name,))[0]
+
+    @staticmethod
+    def get_by_nickname(dao, nickname):
+        sql = "SELECT * FROM projects WHERE nickname=?"
+        return dao.execute(sql, (nickname,))[0]
+
+    @staticmethod
+    def getAsns(dao, prjid, month=None):
         sql = ("SELECT a.id AS id, "
                "a.employee_id AS employee_id, "
                "a.first_month AS first_month, "
@@ -41,36 +52,48 @@ class Project(object):
             sql += "AND a.last_month >= ? "
             vals += [month]
         sql += "ORDER BY e.name;"
-        return Dao.execute(sql, vals)
+        return dao.execute(sql, vals)
 
     @staticmethod
-    def add(d):
+    def add(dao, d):
         d['active'] = 1
+        d['PI'] = None
+        d['PM'] = None
         sql = "INSERT INTO projects (%s) VALUES (%s);" % (
             ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
         )
         vals = list(d.values())
-        return Dao.execute(sql, vals)
+        try:
+            return dao.execute(sql, vals)
+        except Exception as e:
+            if str(e) == 'UNIQUE constraint failed: projects.nickname':
+                raise Exception('Project nickname is not unique!')
+            else:
+                raise
 
     @staticmethod
-    def update(prjId, d):
+    def update(dao, prj, d):
+        if prj['name'].upper() == d['name'].upper():
+            del d['name']
+        if prj['nickname'].upper() == d['nickname'].upper():
+            del d['nickname']
         sql = ("UPDATE projects "
                "SET %s "
                "WHERE id=?;") % (
             ','.join(f + '=?' for f in d.keys()))
-        vals = list(d.values()) + [prjId]
-        return Dao.execute(sql, vals)
+        vals = list(d.values()) + [prj['id']]
+        return dao.execute(sql, vals)
 
     @staticmethod
-    def delete(ids):
+    def delete(dao, ids):
         sql = "DELETE FROM projects WHERE id IN (%s);" % \
               ','.join(['?'] * len(ids))
-        return Dao.execute(sql, ids)
+        return dao.execute(sql, ids)
 
     @staticmethod
-    def update_pi(prjid, empid):
+    def update_pi(dao, prjid, empid):
         sql = ("UPDATE projects "
                "SET principal_investigator=? "
                "WHERE id=?;")
         vals = (empid, prjid)
-        return Dao.execute(sql, vals)
+        return dao.execute(sql, vals)

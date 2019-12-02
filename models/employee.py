@@ -1,38 +1,46 @@
-from models.dao import Dao
+from collections import namedtuple
+
+EmployeeMatch = namedtuple('EmployeeMatch', 'id names')
 
 
 class Employee(object):
-    def __init__(self, name, grade, step, fte, notes, investigator):
-        self.name = name
-        self.grade = grade
-        self.step = step
-        self.fte = fte
-        self.notes = notes
-        self.investigator = investigator
+
+    def __init__(self, d):
+        self.name = d['name']
+        self.grade = d['grade']
+        self.step = d['step']
+        self.fte = d['fte']
+        self.investigator = d['investigator']
+        self.notes = d['notes']
 
     @staticmethod
-    def get_all():
+    def get_all(dao):
         sql = "SELECT * FROM employees ORDER BY name;"
-        rex = Dao.execute(sql)
+        rex = dao.execute(sql)
         return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
-    def get_all_active():
+    def get_all_active(dao):
         sql = ("SELECT * FROM employees "
                "WHERE active=1 "
                "ORDER BY name;")
-        rex = Dao.execute(sql)
+        rex = dao.execute(sql)
         return {rec['id']: rec for rec in rex} if rex else {}
 
     @staticmethod
-    def get_investigators():
+    def get_investigators(dao):
         sql = ("SELECT * FROM employees "
                "WHERE investigator=1 "
                "ORDER BY name;")
-        return Dao.execute(sql)
+        return dao.execute(sql)
 
     @staticmethod
-    def getAsns(empid, month=None):
+    def get_one(dao, empId):
+        sql = "SELECT * FROM employees WHERE id=?"
+        return dao.execute(sql, (empId,))[0]
+
+    @staticmethod
+    def getAsns(dao, empid, month=None):
         sql = ("SELECT a.id AS id, "
                "a.project_id AS project_id, "
                "a.first_month AS first_month, "
@@ -49,28 +57,30 @@ class Employee(object):
             sql += "AND a.last_month >= ? "
             vals += [month]
         sql += "ORDER BY p.nickname;"
-        return Dao.execute(sql, vals)
+        return dao.execute(sql, vals)
 
     @staticmethod
-    def add(d):
+    def add(dao, d):
         d['active'] = 1
         sql = "INSERT INTO employees (%s) VALUES (%s);" % (
             ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
         )
         vals = list(d.values())
-        return Dao.execute(sql, vals)
+        return dao.execute(sql, vals)
 
     @staticmethod
-    def update(empId, d):
+    def update(dao, emp, d):
+        if emp['name'].upper() == d['name'].upper():
+            del d['name']
         sql = ("UPDATE employees "
                "SET %s "
                "WHERE id=?;") % (
             ','.join(f + '=?' for f in d.keys()))
-        vals = list(d.values()) + [empId]
-        return Dao.execute(sql, vals)
+        vals = list(d.values()) + [emp['id']]
+        return dao.execute(sql, vals)
 
     @staticmethod
-    def delete(ids):
+    def delete(dao, ids):
         sql = "DELETE FROM employees WHERE id IN (%s);" % \
               ','.join(['?'] * len(ids))
-        return Dao.execute(sql, ids)
+        return dao.execute(sql, ids)

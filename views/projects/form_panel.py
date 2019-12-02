@@ -2,6 +2,7 @@ import wx
 from utils.strutils import displayValue
 import models.globals as gbl
 from models.project import Project
+from models.obj_combo_box import ObjComboBox
 from models.month import Month
 import utils.buttons as btn_lib
 
@@ -61,7 +62,7 @@ class PrjFormPanel(wx.Panel):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblName = wx.StaticText(panel, wx.ID_ANY, 'Project Name: ')
+        lblName = wx.StaticText(panel, wx.ID_ANY, 'Project Name: *')
         self.txtName = wx.TextCtrl(panel, wx.ID_ANY,
                               displayValue(self.prj, 'name'),
                               size=(500, -1))
@@ -70,7 +71,7 @@ class PrjFormPanel(wx.Panel):
         layout.Add(nameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         nicknameLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblNickname = wx.StaticText(panel, wx.ID_ANY, 'Nickname: ')
+        lblNickname = wx.StaticText(panel, wx.ID_ANY, 'Nickname: *')
         self.txtNickname = wx.TextCtrl(panel, wx.ID_ANY,
                                   displayValue(self.prj, 'nickname'), size=(400, -1))
         nicknameLayout.Add(lblNickname, 0, wx.ALL, 5)
@@ -78,13 +79,13 @@ class PrjFormPanel(wx.Panel):
         layout.Add(nicknameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         intervalLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: ')
+        lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: *')
         value = Month.prettify(displayValue(self.prj, 'first_month'))
         self.txtFirstMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         intervalLayout.Add(self.txtFirstMonth, 0, wx.ALL, 5)
 
-        lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: ')
+        lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: *')
         value = Month.prettify(displayValue(self.prj, 'last_month'))
         self.txtLastMonth = Month.getMonthCtrl(panel, value)
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
@@ -93,19 +94,14 @@ class PrjFormPanel(wx.Panel):
 
         personsLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblPI = wx.StaticText(panel, wx.ID_ANY, 'PI:')
-        pis = [emp['name'] for emp in gbl.empRex.values() if emp['investigator'] == 1]
-        self.cboPI = wx.ComboBox(panel, wx.ID_ANY,
-                            style=wx.CB_READONLY,
-                            choices=pis,
-                            value=self.prj['PiName'] if self.prj else '')
+
+        pis = [rec for rec in gbl.empRex.values() if rec['investigator'] == 1]
+        self.cboPI = ObjComboBox(panel, pis, 'name', style=wx.CB_READONLY)
         personsLayout.Add(lblPI, 0, wx.ALL, 5)
         personsLayout.Add(self.cboPI, 0, wx.ALL, 5)
         lblPM = wx.StaticText(panel, wx.ID_ANY, 'PM:')
-        pms = [emp['name'] for emp in gbl.empRex.values() if emp['investigator'] == 0 ]
-        self.cboPM = wx.ComboBox(panel, wx.ID_ANY,
-                            style=wx.CB_READONLY,
-                            choices=pms,
-                            value=self.prj['PmName'] if self.prj else '' )
+        pms = [rec for rec in gbl.empRex.values() if rec['investigator'] == 0 ]
+        self.cboPM = ObjComboBox(panel, pms, 'name',  style=wx.CB_READONLY)
         personsLayout.Add(lblPM, 0, wx.ALL, 5)
         personsLayout.Add(self.cboPM, 0, wx.ALL, 5)
         layout.Add(personsLayout, 0, wx.ALL, 5)
@@ -131,36 +127,48 @@ class PrjFormPanel(wx.Panel):
             print(result)
 
     def onSaveClick(self, event):
+        from models.dao import Dao
+
         self.getFormData()
 
         if self.validate():
-            if self.prj is None:
-                result = Project.add(self.formData)
-                print(result)
-            else:
-                result = Project.update(self.prj['id'], self.formData)
-                print(result)
+            try:
+                if self.prj is None:
+                    result = Project.add(Dao(), self.formData)
+                    print(result)
+                else:
+                    result = Project.update(Dao(), self.prj, self.formData)
+                    print(result)
+            except Exception as e:
+                wx.MessageBox(str(e), 'Oops!')
+                return
             self.Parent.dtlPanel.activateAddBtn()
             self.Parent.Close()
 
     def getFormData(self):
-        self.formData['name'] = self.txtName.GetValue()
-        self.formData['nickname'] = self.txtNickname.GetValue()
-        self.formData['first_month'] = Month.uglify(self.txtFirstMonth.GetValue())
-        self.formData['last_month'] = Month.uglify(self.txtLastMonth.GetValue())
-        self.formData['PI'] = self.cboPI.GetValue()
-        self.formData['PM'] = self.cboPM.GetValue()
-        self.formData['notes'] = self.txtNotes.GetValue()
+        self.formData = {
+            'name': self.txtName.GetValue(),
+            'nickname': self.txtNickname.GetValue(),
+            'first_month': Month.uglify(self.txtFirstMonth.GetValue()),
+            'last_month': Month.uglify(self.txtLastMonth.GetValue()),
+            'PI': self.cboPI.getSelectionId(),
+            'PM': self.cboPM.getSelectionId(),
+            'notes': self.txtNotes.GetValue()
+        }
 
     def validate(self):
         import models.validators as validators
+        from models.project import ProjectMatch
 
-        errMsg = validators.validatePrjName(self.formData['name'], gbl.prjRex)
+        prj_id = self.prj['id'] if self.prj else 0
+        prj_match = ProjectMatch(prj_id, gbl.prjNames)
+        errMsg = validators.validatePrjName(self.formData['name'], prj_match)
         if errMsg:
             validators.showErrMsg(self.txtName, errMsg)
             return False
 
-        errMsg = validators.validatePrjNickname(self.formData['nickname'], gbl.prjRex)
+        prj_match = ProjectMatch(prj_id, gbl.prjNicknames)
+        errMsg = validators.validatePrjNickname(self.formData['nickname'], prj_match)
         if errMsg:
             validators.showErrMsg(self.txtNickname, errMsg)
             return False

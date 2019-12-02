@@ -3,6 +3,11 @@ from collections import namedtuple
 
 prjRex = {}
 empRex = {}
+prjNames = {}
+prjNicknames = {}
+empNames = {}
+
+DB_PATH = 'c:/bench/allocatwx/data/allocat.db'
 
 Skin = namedtuple('Skin', [
     'pnlBg', 'tbBg', 'tbFg', 'lstBg', 'lstHdr', 'lstSel',
