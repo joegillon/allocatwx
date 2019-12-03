@@ -1,7 +1,4 @@
 import unittest
-
-from models.employee import EmployeeMatch
-from models.project import ProjectMatch
 from lib.validator_lib import *
 
 

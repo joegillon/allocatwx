@@ -92,8 +92,8 @@ class EmpAsnListPanel(wx.Panel):
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
+        import dal.emp_dal as emp_dal
         from dal.dao import Dao
-        from models.employee import Employee
 
         ids = [x['id'] for x in self.theList.GetSelectedObjects()]
         if not ids:
@@ -104,7 +104,7 @@ class EmpAsnListPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = Employee.delete(Dao(), ids)
+            result = emp_dal.delete(Dao(), ids)
             print(result)
 
     def activateAddBtn(self):

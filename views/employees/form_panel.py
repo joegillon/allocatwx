@@ -138,27 +138,26 @@ class EmpFormPanel(wx.Panel):
         self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self):
-        import lib.validator_lib as validators
-        from models.employee import EmployeeMatch
+        import lib.validator_lib as vl
 
         emp_id = self.emp['id'] if self.emp else 0
-        emp_match = EmployeeMatch(emp_id, gbl.empNames)
-        errMsg = validators.validateEmpName(self.formData['name'], emp_match)
+        emp_match = vl.EmployeeMatch(emp_id, gbl.empNames)
+        errMsg = vl.validateEmpName(self.formData['name'], emp_match)
         if errMsg == '':
-            validators.showErrMsg(self.txtName, errMsg)
+            vl.showErrMsg(self.txtName, errMsg)
             return False
 
-        errMsg = validators.validateGrade(self.formData['grade'])
+        errMsg = vl.validateGrade(self.formData['grade'])
         if errMsg:
-            validators.showErrMsg(self.txtGrade, errMsg)
+            vl.showErrMsg(self.txtGrade, errMsg)
             return False
 
-        errMsg = validators.validateStep(self.formData['step'])
+        errMsg = vl.validateStep(self.formData['step'])
         if errMsg:
-            validators.showErrMsg(self.txtStep, errMsg)
+            vl.showErrMsg(self.txtStep, errMsg)
             return False
 
-        errMsg = validators.validateFte(self.formData['fte'])
+        errMsg = vl.validateFte(self.formData['fte'])
         if errMsg:
-            validators.showErrMsg(self.txtFte, errMsg)
+            vl.showErrMsg(self.txtFte, errMsg)
             return False

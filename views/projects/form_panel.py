@@ -152,16 +152,15 @@ class PrjFormPanel(wx.Panel):
 
     def validate(self):
         import lib.validator_lib as vl
-        from models.project import ProjectMatch
 
         prj_id = self.prj['id'] if self.prj else 0
-        prj_match = ProjectMatch(prj_id, gbl.prjNames)
+        prj_match = vl.ProjectMatch(prj_id, gbl.prjNames)
         errMsg = vl.validatePrjName(self.formData['name'], prj_match)
         if errMsg:
             vl.showErrMsg(self.txtName, errMsg)
             return False
 
-        prj_match = ProjectMatch(prj_id, gbl.prjNicknames)
+        prj_match = vl.ProjectMatch(prj_id, gbl.prjNicknames)
         errMsg = vl.validatePrjNickname(self.formData['nickname'], prj_match)
         if errMsg:
             vl.showErrMsg(self.txtNickname, errMsg)

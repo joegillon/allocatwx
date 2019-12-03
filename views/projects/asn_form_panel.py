@@ -112,7 +112,7 @@ class PrjAsnFormPanel(wx.Panel):
 
     def onSaveClick(self, event):
         from dal.dao import Dao
-        from models.assignment import Assignment
+        import dal.asn_dal as asn_dal
 
         if self.validate():
             d = self.formData
@@ -123,12 +123,12 @@ class PrjAsnFormPanel(wx.Panel):
                         break
                 d['employee_id'] = empId
                 d['project_id'] = self.prj['id']
-                result = Assignment.add(Dao(), d)
+                result = asn_dal.add(Dao(), d)
                 print(result)
             else:
                 d['employee_id'] = self.asn['employee_id']
                 d['project_id'] = self.asn['project_id']
-                result = Assignment.update(Dao(), self.asn['id'], d)
+                result = asn_dal.update(Dao(), self.asn['id'], d)
                 print(result)
         else:
             return

@@ -95,7 +95,7 @@ class PrjAsnListPanel(wx.Panel):
 
     def onDropBtnClick(self, event):
         from dal.dao import Dao
-        from models.project import Project
+        import dal.prj_dal as prj_dal
 
         ids = [x['id'] for x in self.theList.GetSelectedObjects()]
         if not ids:
@@ -106,7 +106,7 @@ class PrjAsnListPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = Project.delete(Dao(), ids)
+            result = prj_dal.delete(Dao(), ids)
             print(result)
 
     def activateAddBtn(self):

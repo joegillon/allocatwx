@@ -177,6 +177,7 @@ class EffTab(wx.Panel):
             empId = int(self.grid.GetCellValue(event.Row, 0))
             if not self.emp_asns[empId]:
                 wx.MessageBox('No assignments!', 'Oops!',  wx.OK | wx.ICON_INFORMATION)
+                return
             dlg = EmployeeBreakdownDlg(self, wx.ID_ANY, self.emp_asns[empId])
             dlg.ShowModal()
         else:

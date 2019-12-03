@@ -5,7 +5,7 @@ import globals as gbl
 import lib.month_lib as ml
 import lib.ui_lib as uil
 from dal.dao import Dao
-from models.project import Project
+import dal.prj_dal as prj_dal
 from views.projects.detail_dlg import PrjDetailDlg
 
 
