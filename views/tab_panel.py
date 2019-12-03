@@ -1,24 +1,28 @@
-import wx
 import ObjectListView as olv
+import wx
+
 import globals as gbl
+import lib.month_lib as ml
 import lib.ui_lib as uil
 from dal.dao import Dao
-import dal.emp_dal as emp_dal
-from views.employees.detail_dlg import EmpDetailDlg
+from models.project import Project
+from views.projects.detail_dlg import PrjDetailDlg
 
 
-class EmpTab(wx.Panel):
-    def __init__(self, parent):
+class TabPanel(wx.Panel):
+    def __init__(self, parent, dataset):
         wx.Panel.__init__(self, parent)
-        self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
+        self.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.pnlBg))
         layout = wx.BoxSizer(wx.VERTICAL)
+
+        self.dataset = dataset
 
         # Need properties for the filters
         self.theList = None
         self.srchValue = ''
 
         tbPanel = self.buildToolbarPanel()
-        lstPanel = self.buildListPanel(gbl.empRex)
+        lstPanel = self.buildListPanel(self.dataset.rex)
 
         layout.Add(tbPanel, 0, wx.EXPAND | wx.ALL, 5)
         layout.Add(lstPanel, 0, wx.EXPAND | wx.ALL, 5)
@@ -29,21 +33,20 @@ class EmpTab(wx.Panel):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
         )
-        panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
+        panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        addBtn = uil.toolbar_button(panel, 'Add Employee')
+        addBtn = uil.toolbar_button(panel, 'Add')
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         layout.Add(addBtn, 0, wx.ALL, 5)
 
-        dropBtn = uil.toolbar_button(panel, 'Drop Employees')
+        dropBtn = uil.toolbar_button(panel, 'Drop')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
-        lblNameFltr = uil.getToolbarLabel(panel, 'Name:')
+        lblNameFltr = uil.getToolbarLabel(panel, self.dataset.srchName + ':')
         lblNameFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNameFltr, 0, wx.ALL, 5)
-
         nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '',
                                  style=wx.TE_PROCESS_ENTER, name='nameFltr')
         nameFltr.ShowCancelButton(True)
@@ -61,13 +64,6 @@ class EmpTab(wx.Panel):
         notesFltr.Bind(wx.EVT_CHAR, self.onFltr)
         notesFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
         layout.Add(notesFltr, 0, wx.ALL, 5)
-
-        lblInvestigators = uil.getToolbarLabel(panel, 'Investigators:')
-        layout.Add(lblInvestigators, 0, wx.ALL, 5)
-
-        chkInvestigators = wx.CheckBox(panel, wx.ID_ANY)
-        chkInvestigators.Bind(wx.EVT_CHECKBOX, self.onInvestigatorToggle)
-        layout.Add(chkInvestigators, 0, wx.ALL, 5)
 
         hlpBtn = uil.getHelpBtn(panel)
         hlpBtn.Bind(wx.EVT_BUTTON, uil.showListHelp)
@@ -87,17 +83,18 @@ class EmpTab(wx.Panel):
                                           style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         font = self.theList.GetFont()
-        gbl.EMP_NAME_WIDTH = \
-            uil.getWidestTextExtent(font, [x['name'] for x in data.values()])
+        gbl.PRJ_NICKNAME_WIDTH = \
+            uil.getWidestTextExtent(font, [x['nickname'] for x in data.values()])
+        nameWidth = uil.getWidestTextExtent(font, [x['name'] for x in data.values()])
 
         self.theList.SetColumns([
-            olv.ColumnDefn('Name', 'left', gbl.EMP_NAME_WIDTH, 'name'),
-            olv.ColumnDefn('Grade', 'right', 105, 'grade'),
-            olv.ColumnDefn('Step', 'right', 100, 'step'),
-            olv.ColumnDefn('FTE', 'right', 100, 'fte'),
-            olv.ColumnDefn('Notes', 'left', 0, 'notes'),
-            olv.ColumnDefn('Investigator', 'right', 120, 'investigator',
-                           stringConverter=uil.toYN)
+            olv.ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
+            olv.ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=ml.prettify),
+            olv.ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=ml.prettify),
+            olv.ColumnDefn('PI', 'left', 150, 'PiName'),
+            olv.ColumnDefn('PM', 'left', 150, 'PmName'),
+            olv.ColumnDefn('Name', 'left', nameWidth, 'name'),
+            olv.ColumnDefn('Notes', 'left', 0, 'notes')
         ])
 
         self.theList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
@@ -107,38 +104,38 @@ class EmpTab(wx.Panel):
 
         self.theList.SetObjects(list(data.values()))
 
-        layout.Add(self.theList, 1, wx.ALL | wx.EXPAND, 5)
+        layout.Add(self.theList, 0, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizer(layout)
 
         return panel
 
     def onDblClick(self, event):
-        emp = event.EventObject.GetSelectedObject()
-        asns = emp_dal.getAsns(Dao(), emp['id'])
+        obj = event.EventObject.GetSelectedObject()
+        asns = self.dataset.getAsns(Dao(), obj['id'])
 
-        dlg = EmpDetailDlg(self, wx.ID_ANY, 'Employee Details', emp['id'], asns)
+        dlg = PrjDetailDlg(self, wx.ID_ANY, 'Project Details', prj['id'], asns)
         dlg.ShowModal()
 
     def onRightClick(self, event):
-        emp = event.EventObject.GetSelectedObject()
-        wx.MessageBox(emp['notes'], 'Notes', wx.OK | wx.ICON_INFORMATION)
+        prj = event.EventObject.GetSelectedObject()
+        wx.MessageBox(prj['notes'], 'Notes', wx.OK | wx.ICON_INFORMATION)
 
     def onAddBtnClick(self, event):
-        dlg = EmpDetailDlg(self, wx.ID_ANY, 'New Employee', None, None)
+        dlg = PrjDetailDlg(self, wx.ID_ANY, 'New Project', None, None)
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
         ids = [x['id'] for x in self.theList.GetSelectedObjects()]
         if not ids:
-            wx.MessageBox('No employees selected!', 'Oops!',
+            wx.MessageBox('No projects selected!', 'Oops!',
                           wx.OK | wx.ICON_ERROR)
             return
-        dlg = wx.MessageDialog(self, 'Drop selected employees?', 'Just making sure',
+        dlg = wx.MessageDialog(self, 'Drop selected projects?', 'Just making sure',
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = emp_dal.delete(Dao(), ids)
+            result = Project.delete(Dao(), ids)
             print(result)
 
     def onFltr(self, event):
@@ -150,7 +147,7 @@ class EmpTab(wx.Panel):
             self.srchValue += c
         col = self.theList.columns[0:1]
         if event.EventObject.Parent.Name == 'notesFltr':
-            col = self.theList.columns[4:5]
+            col = self.theList.columns[4:1]
         self.theList.SetFilter(olv.Filter.TextSearch(
             self.theList, columns=col, text=self.srchValue))
         self.theList.RepopulateList()
@@ -161,11 +158,3 @@ class EmpTab(wx.Panel):
         self.theList.SetFilter(None)
         self.theList.RepopulateList()
         self.srchValue = ''
-
-    def onInvestigatorToggle(self, event):
-        if event.Selection == 0:
-            self.theList.SetFilter(None)
-        else:
-            self.theList.SetFilter(olv.Filter.TextSearch(
-                self.theList, columns=self.theList.columns[5:], text='Y'))
-        self.theList.RepopulateList()

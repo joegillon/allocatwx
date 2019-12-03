@@ -1,7 +1,7 @@
 import wx
-from ObjectListView import ObjectListView, ColumnDefn
-import models.globals as gbl
-from models.month import Month
+import ObjectListView as olv
+import globals as gbl
+import lib.month_lib as ml
 
 
 class EmployeeBreakdownDlg(wx.Dialog):
@@ -11,6 +11,7 @@ class EmployeeBreakdownDlg(wx.Dialog):
         panel = wx.Panel(self, wx.ID_ANY)
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
 
+        self.theList = None
         self.asns = asns
 
         tbPanel = self.buildToolbarPanel()
@@ -39,19 +40,19 @@ class EmployeeBreakdownDlg(wx.Dialog):
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.olv = ObjectListView(panel, wx.ID_ANY,
-                                  size=wx.DefaultSize,
-                                  style=wx.LC_REPORT | wx.SUNKEN_BORDER)
-        self.olv.SetColumns([
-            ColumnDefn('Project', 'left', gbl.PRJ_NICKNAME_WIDTH, 'project'),
-            ColumnDefn('First Month', 'right', 105, 'first_month', stringConverter=Month.prettify),
-            ColumnDefn('Last Month', 'right', 100, 'last_month', stringConverter=Month.prettify),
-            ColumnDefn('% Effort', 'right', 100, 'effort')
+        self.theList = olv.ObjectListView(panel, wx.ID_ANY,
+                                          size=wx.DefaultSize,
+                                          style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.theList.SetColumns([
+            olv.ColumnDefn('Project', 'left', gbl.PRJ_NICKNAME_WIDTH, 'project'),
+            olv.ColumnDefn('First Month', 'right', 105, 'first_month', stringConverter=ml.prettify),
+            olv.ColumnDefn('Last Month', 'right', 100, 'last_month', stringConverter=ml.prettify),
+            olv.ColumnDefn('% Effort', 'right', 100, 'effort')
         ])
 
-        self.olv.SetObjects(self.asns)
+        self.theList.SetObjects(self.asns)
 
-        layout.Add(self.olv, 0, wx.ALL | wx.EXPAND, 5)
+        layout.Add(self.theList, 0, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizerAndFit(layout)
 

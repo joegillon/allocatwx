@@ -1,9 +1,10 @@
 import unittest
-from tests.setup_db import getDB
-from models.dao import Dao
-from models.project import Project
-from models.employee import Employee
+
+from dal.dao import Dao
 from models.assignment import Assignment
+from models.employee import Employee
+from models.project import Project
+from tests.setup_db import getDB
 
 mockDB = getDB()
 

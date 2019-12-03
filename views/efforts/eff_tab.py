@@ -1,10 +1,9 @@
+from datetime import date
 import wx
 import wx.grid
-import models.globals as gbl
-from utils.ui_utils import getToolbarLabel
-from models.month import Month
-from datetime import date
-import utils.buttons as btn_lib
+import globals as gbl
+import lib.month_lib as ml
+import lib.ui_lib as uil
 
 
 class PercentEffort(object):
@@ -33,7 +32,11 @@ class EffTab(wx.Panel):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         self.grid = None
+        self.txtStart = None
+        self.txtThru = None
         self.rows = []
+        self.emp_asns = {}
+        self.breakdowns = {}
 
         tbPanel = self.buildToolbarPanel()
         layout.Add(tbPanel, 0, wx.EXPAND | wx.ALL, 5)
@@ -52,22 +55,22 @@ class EffTab(wx.Panel):
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        lblStart = getToolbarLabel(panel, 'Start:')
+        lblStart = uil.getToolbarLabel(panel, 'Start:')
         lblStart.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblStart, 0, wx.ALL, 5)
 
         start = date.today()
-        self.txtStart = Month.getMonthCtrl(panel, Month.d2month(start))
+        self.txtStart = uil.getMonthCtrl(panel, ml.d2month(start))
         layout.Add(self.txtStart, 0, wx.ALL, 5)
 
-        lblThru = getToolbarLabel(panel, 'Thru:')
+        lblThru = uil.getToolbarLabel(panel, 'Thru:')
         lblThru.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblThru, 0, wx.ALL, 5)
 
-        self.txtThru = Month.getMonthCtrl(panel, Month.datePlus(start, 11))
+        self.txtThru = uil.getMonthCtrl(panel, ml.datePlus(start, 11))
         layout.Add(self.txtThru, 0, wx.ALL, 5)
 
-        btnRun = btn_lib.toolbar_button(panel, 'Run Query')
+        btnRun = uil.toolbar_button(panel, 'Run Query')
         btnRun.Bind(wx.EVT_BUTTON, self.onRunClick)
         layout.Add(btnRun, 0, wx.ALL, 5)
 
@@ -88,7 +91,7 @@ class EffTab(wx.Panel):
 
         start = self.txtStart.GetValue()
         thru = self.txtThru.GetValue()
-        months = Month.getMonths(start, thru)
+        months = ml.getMonths(start, thru)
         self.buildDataSet(start, thru, months)
 
         self.grid = wx.grid.Grid(self.lstPanel, wx.ID_ANY)
@@ -139,10 +142,10 @@ class EffTab(wx.Panel):
                 self.grid.SetCellAlignment(i, j, wx.ALIGN_RIGHT, wx.ALIGN_CENTER)
 
     def buildDataSet(self, start, thru, months):
-        from models.assignment import Assignment
-        from models.dao import Dao
+        from dal.dao import Dao
+        import dal.asn_dal as asn_dal
 
-        asns = Assignment.get_for_timeframe(Dao(), start, thru)
+        asns = asn_dal.get_for_timeframe(Dao(), start, thru)
         self.emp_asns = {emp['id']: [] for emp in gbl.empRex.values()}
 
         for asn in asns:
@@ -153,7 +156,7 @@ class EffTab(wx.Panel):
             for month in months:
                 cell = EffCell(month)
                 for emp_asn in self.emp_asns[emp]:
-                    uglyMo = Month.uglify(month)
+                    uglyMo = ml.uglify(month)
                     if uglyMo < emp_asn['first_month'] or uglyMo > emp_asn['last_month']:
                         continue
                     cell.total += emp_asn['effort']

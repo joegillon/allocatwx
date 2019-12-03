@@ -1,7 +1,6 @@
 import wx
-import models.globals as gbl
-from models.month import Month
-import utils.buttons as btn_lib
+import globals as gbl
+import lib.ui_lib as uil
 
 
 class EmpAsnFormPanel(wx.Panel):
@@ -20,7 +19,7 @@ class EmpAsnFormPanel(wx.Panel):
         self.formData = None
 
         tbPanel = self.buildToolbarPanel()
-        frmPanel = self.buildFormPanel(empId)
+        frmPanel = self.buildFormPanel()
 
         layout.Add(tbPanel, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(frmPanel, 0, wx.ALL | wx.EXPAND, 5)
@@ -34,10 +33,10 @@ class EmpAsnFormPanel(wx.Panel):
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.tbBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        saveBtn = btn_lib.toolbar_button(panel, 'Save Assignment')
+        saveBtn = uil.toolbar_button(panel, 'Save Assignment')
         saveBtn.Bind(wx.EVT_BUTTON, self.onSaveClick)
 
-        cancelBtn = btn_lib.toolbar_button(panel, 'Cancel')
+        cancelBtn = uil.toolbar_button(panel, 'Cancel')
         cancelBtn.Bind(wx.EVT_BUTTON, self.onCancelClick)
 
         layout.Add(saveBtn, 0, wx.ALL, 5)
@@ -47,7 +46,7 @@ class EmpAsnFormPanel(wx.Panel):
 
         return panel
 
-    def buildFormPanel(self, empName):
+    def buildFormPanel(self):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, size=(-1, 375)
         )
@@ -79,13 +78,13 @@ class EmpAsnFormPanel(wx.Panel):
         lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: *')
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         value = self.asn['first_month'] if self.asn else ''
-        self.txtFirstMonth = Month.getMonthCtrl(panel, value)
+        self.txtFirstMonth = uil.getMonthCtrl(panel, value)
         intervalLayout.Add(self.txtFirstMonth, 0, wx.ALL, 5)
 
         lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: *')
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
         value = self.asn['last_month'] if self.asn else ''
-        self.txtLastMonth = Month.getMonthCtrl(panel, value)
+        self.txtLastMonth = uil.getMonthCtrl(panel, value)
         intervalLayout.Add(self.txtLastMonth, 0, wx.ALL, 5)
 
         layout.Add(intervalLayout)
@@ -112,6 +111,7 @@ class EmpAsnFormPanel(wx.Panel):
         return panel
 
     def onSaveClick(self, event):
+        from dal.dao import Dao
         from models.assignment import Assignment
 
         if self.validate():
@@ -123,12 +123,12 @@ class EmpAsnFormPanel(wx.Panel):
                         break
                 d['employee_id'] = self.emp['id']
                 d['project_id'] = prjId
-                result = Assignment.add(d)
+                result = Assignment.add(Dao(), d)
                 print(result)
             else:
                 d['employee_id'] = self.asn['employee_id']
                 d['project_id'] = self.asn['project_id']
-                result = Assignment.update(self.asn['id'], d)
+                result = Assignment.update(Dao(), self.asn['id'], d)
                 print(result)
             return
         self.Parent.Close()
@@ -141,7 +141,7 @@ class EmpAsnFormPanel(wx.Panel):
         self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self):
-        import models.validators as validators
+        import lib.validator_lib as validators
 
         if self.cboPrj:
             errMsg = validators.validatePrjNickname(self.formData['prjName'])

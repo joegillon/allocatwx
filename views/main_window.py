@@ -1,9 +1,9 @@
 import wx
-import models.globals as gv
-from views.projects.prj_tab import PrjTab
-from views.employees.emp_tab import EmpTab
+
+import globals as gbl
 from views.efforts.eff_tab import EffTab
-import models.globals as gbl
+from views.employees.emp_tab import EmpTab
+from views.projects.prj_tab import PrjTab
 
 
 class MainWindow(wx.Frame):

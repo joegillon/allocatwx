@@ -1,7 +1,6 @@
 import re
-import wx
-from utils.strutils import set2compare
-from models.month import Month
+import lib.month_lib as ml
+import lib.ui_lib as uil
 
 MONTH_PATTERN = r"^[0-9]{2}(0[1-9]|1[0-2])$"
 WHOLE_NAME_PATTERN = r"^[A-Z'\-]+,[\s]*[A-Z' \-]+$"
@@ -14,7 +13,7 @@ def validatePrjName(value, match=None):
         return 'Project name required!'
 
     if match:
-        target = set2compare(value)
+        target = uil.set2compare(value)
         if target in match.values:
             if match.values[target] != match.id:
                 return 'Project name taken!'
@@ -27,7 +26,7 @@ def validatePrjNickname(value, match=None):
         return 'Project nickname required!'
 
     if match:
-        target = set2compare(value)
+        target = uil.set2compare(value)
         if target in match.values:
             if match.id == 0 or match.values[target] != match.id:
                 return 'Project nickname taken!'
@@ -42,11 +41,11 @@ def validateTimeframe(firstMonth, lastMonth, prj=None):
     if not re.match(MONTH_PATTERN, lastMonth):
         return 'Last month invalid!'
 
-    if not Month.isValidSpan(firstMonth, lastMonth):
+    if not ml.isValidSpan(firstMonth, lastMonth):
         return 'First Month must precede Last Month!'
 
     if prj:
-        if not Month.isInPrjSpan(prj, firstMonth, lastMonth):
+        if not ml.isInPrjSpan(prj, firstMonth, lastMonth):
             return 'Timeframe outside project timeframe!'
 
     return None
@@ -60,7 +59,7 @@ def validateEmpName(value, match=None):
         if not re.match(WHOLE_NAME_PATTERN, value.upper()):
             return 'Employee name invalid!'
 
-        target = set2compare(value)
+        target = uil.set2compare(value)
         if target in match.names:
             if match.names[target] != match.id:
                 return 'Employee name taken!'
@@ -101,5 +100,7 @@ def validateEffort(value):
 
 
 def showErrMsg(ctl, msg):
+    import wx
+
     ctl.SetFocus()
     wx.MessageBox(msg, 'Error!', wx.ICON_EXCLAMATION | wx.OK)

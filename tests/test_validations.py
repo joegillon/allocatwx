@@ -1,7 +1,9 @@
 import unittest
-from models.validators import *
-from models.project import ProjectMatch
+
 from models.employee import EmployeeMatch
+from models.project import ProjectMatch
+from lib.validator_lib import *
+
 
 class ValidationTestSuite(unittest.TestCase):
     def setUp(self):

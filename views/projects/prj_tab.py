@@ -1,13 +1,11 @@
 import wx
-from ObjectListView import ObjectListView, ColumnDefn, Filter
+import ObjectListView as olv
+import globals as gbl
+import lib.month_lib as ml
+import lib.ui_lib as uil
+from dal.dao import Dao
+import dal.prj_dal as prj_dal
 from views.projects.detail_dlg import PrjDetailDlg
-from models.project import Project
-import models.globals as gbl
-from models.dao import Dao
-from utils.strutils import getWidestTextExtent
-from utils.ui_utils import getToolbarLabel
-from models.month import Month
-import utils.buttons as btn_lib
 
 
 class PrjTab(wx.Panel):
@@ -17,7 +15,7 @@ class PrjTab(wx.Panel):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         # Need properties for the filters
-        self.olv = None
+        self.theList = None
         self.srchValue = ''
 
         tbPanel = self.buildToolbarPanel()
@@ -35,15 +33,15 @@ class PrjTab(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        addBtn = btn_lib.toolbar_button(panel, 'Add Project')
+        addBtn = uil.toolbar_button(panel, 'Add Project')
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         layout.Add(addBtn, 0, wx.ALL, 5)
 
-        dropBtn = btn_lib.toolbar_button(panel, 'Drop Projects')
+        dropBtn = uil.toolbar_button(panel, 'Drop Projects')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
-        lblNickFltr = getToolbarLabel(panel, 'Nickname:')
+        lblNickFltr = uil.getToolbarLabel(panel, 'Nickname:')
         lblNickFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNickFltr, 0, wx.ALL, 5)
 
@@ -54,7 +52,7 @@ class PrjTab(wx.Panel):
         nickFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
         layout.Add(nickFltr, 0, wx.ALL, 5)
 
-        lblNotesFltr = getToolbarLabel(panel, 'Notes')
+        lblNotesFltr = uil.getToolbarLabel(panel, 'Notes')
         lblNotesFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNotesFltr, 0, wx.ALL, 5)
 
@@ -65,8 +63,8 @@ class PrjTab(wx.Panel):
         notesFltr.Bind(wx.EVT_SEARCHCTRL_CANCEL_BTN, self.onFltrCancel)
         layout.Add(notesFltr, 0, wx.ALL, 5)
 
-        hlpBtn = gbl.getHelpBtn(panel)
-        hlpBtn.Bind(wx.EVT_BUTTON, gbl.showListHelp)
+        hlpBtn = uil.getHelpBtn(panel)
+        hlpBtn.Bind(wx.EVT_BUTTON, uil.showListHelp)
         layout.Add(hlpBtn, 0, wx.ALL, 5)
 
         panel.SetSizerAndFit(layout)
@@ -78,33 +76,33 @@ class PrjTab(wx.Panel):
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        self.olv = ObjectListView(panel, wx.ID_ANY,
-                                  size=wx.Size(-1, 550),
-                                  style=wx.LC_REPORT | wx.SUNKEN_BORDER)
+        self.theList = olv.ObjectListView(panel, wx.ID_ANY,
+                                          size=wx.Size(-1, 550),
+                                          style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
-        font = self.olv.GetFont()
+        font = self.theList.GetFont()
         gbl.PRJ_NICKNAME_WIDTH = \
-            getWidestTextExtent(font, [x['nickname'] for x in data.values()])
-        nameWidth = getWidestTextExtent(font, [x['name'] for x in data.values()])
+            uil.getWidestTextExtent(font, [x['nickname'] for x in data.values()])
+        nameWidth = uil.getWidestTextExtent(font, [x['name'] for x in data.values()])
 
-        self.olv.SetColumns([
-            ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
-            ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=Month.prettify),
-            ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=Month.prettify),
-            ColumnDefn('PI', 'left', 150, 'PiName'),
-            ColumnDefn('PM', 'left', 150, 'PmName'),
-            ColumnDefn('Name', 'left', nameWidth, 'name'),
-            ColumnDefn('Notes', 'left', 0, 'notes')
+        self.theList.SetColumns([
+            olv.ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
+            olv.ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=ml.prettify),
+            olv.ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=ml.prettify),
+            olv.ColumnDefn('PI', 'left', 150, 'PiName'),
+            olv.ColumnDefn('PM', 'left', 150, 'PmName'),
+            olv.ColumnDefn('Name', 'left', nameWidth, 'name'),
+            olv.ColumnDefn('Notes', 'left', 0, 'notes')
         ])
 
-        self.olv.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
-        self.olv.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
+        self.theList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
+        self.theList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
-        self.olv.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
+        self.theList.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
 
-        self.olv.SetObjects(list(data.values()))
+        self.theList.SetObjects(list(data.values()))
 
-        layout.Add(self.olv, 0, wx.ALL | wx.EXPAND, 5)
+        layout.Add(self.theList, 0, wx.ALL | wx.EXPAND, 5)
 
         panel.SetSizer(layout)
 
@@ -112,7 +110,7 @@ class PrjTab(wx.Panel):
 
     def onDblClick(self, event):
         prj = event.EventObject.GetSelectedObject()
-        asns = Project.getAsns(Dao(), prj['id'])
+        asns = prj_dal.getAsns(Dao(), prj['id'])
 
         dlg = PrjDetailDlg(self, wx.ID_ANY, 'Project Details', prj['id'], asns)
         dlg.ShowModal()
@@ -126,7 +124,7 @@ class PrjTab(wx.Panel):
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
-        ids = [x['id'] for x in self.olv.GetSelectedObjects()]
+        ids = [x['id'] for x in self.theList.GetSelectedObjects()]
         if not ids:
             wx.MessageBox('No projects selected!', 'Oops!',
                           wx.OK | wx.ICON_ERROR)
@@ -135,7 +133,7 @@ class PrjTab(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = Project.delete(Dao(), ids)
+            result = prj_dal.delete(Dao(), ids)
             print(result)
 
     def onFltr(self, event):
@@ -145,16 +143,16 @@ class PrjTab(wx.Panel):
                 self.srchValue = self.srchValue[:-1]
         else:
             self.srchValue += c
-        col = self.olv.columns[0:1]
+        col = self.theList.columns[0:1]
         if event.EventObject.Parent.Name == 'notesFltr':
-            col = self.olv.columns[4:1]
-        self.olv.SetFilter(Filter.TextSearch(
-            self.olv, columns=col, text=self.srchValue))
-        self.olv.RepopulateList()
+            col = self.theList.columns[4:1]
+        self.theList.SetFilter(olv.Filter.TextSearch(
+            self.theList, columns=col, text=self.srchValue))
+        self.theList.RepopulateList()
         event.Skip()
 
     def onFltrCancel(self, event):
         event.EventObject.Clear()
-        self.olv.SetFilter(None)
-        self.olv.RepopulateList()
+        self.theList.SetFilter(None)
+        self.theList.RepopulateList()
         self.srchValue = ''

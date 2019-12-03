@@ -1,5 +1,5 @@
 import sqlite3
-import models.globals as gbl
+import globals as gbl
 
 
 class Dao(object):
@@ -52,7 +52,3 @@ class Dao(object):
 
     def close(self):
         self.__db.close()
-
-    @staticmethod
-    def get_param_string(param_list):
-        return ('?,' * len(param_list))[0:-1]

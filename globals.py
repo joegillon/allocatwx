@@ -1,8 +1,10 @@
-import wx
 from collections import namedtuple
 
+# Our dataset
 prjRex = {}
 empRex = {}
+
+# These are to validate uniqueness
 prjNames = {}
 prjNicknames = {}
 empNames = {}
@@ -161,20 +163,6 @@ SKINS = {
 }
 COLOR_SCHEME = SKINS['Seafoam']
 
+# These just declare these constants which are set by their tabs
 EMP_NAME_WIDTH = 0
 PRJ_NICKNAME_WIDTH = 0
-
-def getHelpBtn(parent):
-    bmp = wx.Bitmap('images/question.png', wx.BITMAP_TYPE_ANY)
-    return wx.BitmapButton(parent, wx.ID_ANY, bitmap=bmp,
-                           size=(bmp.GetWidth() + 5,
-                                 bmp.GetHeight() + 5))
-
-
-def showListHelp(event):
-    msg = ("Left click to select item.\n"
-           "Ctrl-left click to select multiple separate items.\n"
-           "Shift-left click to select multiple contiguous items.\n"
-           "Right click to see Notes.\n"
-           "Double click to edit.")
-    wx.MessageBox(msg, 'Help', wx.OK | wx.ICON_INFORMATION)
