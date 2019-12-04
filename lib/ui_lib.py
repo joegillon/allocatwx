@@ -1,6 +1,10 @@
 import wx
+from collections import namedtuple
 import globals as gbl
 from lib.custom_button import CustomButton
+
+ColDef = namedtuple('ColDef', 'hdr just width fldName stringConverter')
+TabDef = namedtuple('TabDef', 'tblName srchFld colDefs dal dlg')
 
 
 def getToolbarLabel(panel, text):

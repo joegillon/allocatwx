@@ -100,7 +100,7 @@ class EffTab(wx.Panel):
         self.setGridAlignment()
         self.grid.SetRowLabelSize(0)
         self.grid.HideCol(0)
-        self.grid.SetColSize(1, gbl.EMP_NAME_WIDTH)
+        self.grid.SetColSize(1, gbl.widestEmpName)
 
         self.grid.SetDefaultCellBackgroundColour(gbl.COLOR_SCHEME.grdCellBg)
         self.grid.SetLabelBackgroundColour(gbl.COLOR_SCHEME.grdLblBg)

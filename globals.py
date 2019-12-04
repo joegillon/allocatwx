@@ -163,6 +163,7 @@ SKINS = {
 }
 COLOR_SCHEME = SKINS['Seafoam']
 
-# These just declare these constants which are set by their tabs
-EMP_NAME_WIDTH = 0
-PRJ_NICKNAME_WIDTH = 0
+# Declare these vars globally
+widestEmpName = 0
+widestPrjName = 0
+widestNickname = 0

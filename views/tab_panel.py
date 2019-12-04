@@ -1,28 +1,25 @@
-import ObjectListView as olv
 import wx
-
+import ObjectListView as olv
 import globals as gbl
-import lib.month_lib as ml
 import lib.ui_lib as uil
 from dal.dao import Dao
-import dal.prj_dal as prj_dal
-from views.projects.detail_dlg import PrjDetailDlg
 
 
 class TabPanel(wx.Panel):
-    def __init__(self, parent, dataset):
+    def __init__(self, parent, tabDef):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.pnlBg))
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.dataset = dataset
+        self.tabDef = tabDef
+        self.rex = self.tabDef.dal.get_all_active(Dao())
 
         # Need properties for the filters
         self.theList = None
-        self.srchValue = ''
+        self.srchTarget = ''
 
         tbPanel = self.buildToolbarPanel()
-        lstPanel = self.buildListPanel(self.dataset.rex)
+        lstPanel = self.buildListPanel()
 
         layout.Add(tbPanel, 0, wx.EXPAND | wx.ALL, 5)
         layout.Add(lstPanel, 0, wx.EXPAND | wx.ALL, 5)
@@ -36,15 +33,15 @@ class TabPanel(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        addBtn = uil.toolbar_button(panel, 'Add')
+        addBtn = uil.toolbar_button(panel, 'Add ' + self.tabDef.tblName)
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         layout.Add(addBtn, 0, wx.ALL, 5)
 
-        dropBtn = uil.toolbar_button(panel, 'Drop')
+        dropBtn = uil.toolbar_button(panel, 'Drop ' + self.tabDef.tblName + '(s)')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
-        lblNameFltr = uil.getToolbarLabel(panel, self.dataset.srchName + ':')
+        lblNameFltr = uil.getToolbarLabel(panel, self.tabDef.srchFld + ':')
         lblNameFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNameFltr, 0, wx.ALL, 5)
         nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '',
@@ -73,7 +70,7 @@ class TabPanel(wx.Panel):
 
         return panel
 
-    def buildListPanel(self, data):
+    def buildListPanel(self):
         panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
@@ -82,27 +79,14 @@ class TabPanel(wx.Panel):
                                           size=wx.Size(-1, 550),
                                           style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
-        font = self.theList.GetFont()
-        gbl.PRJ_NICKNAME_WIDTH = \
-            uil.getWidestTextExtent(font, [x['nickname'] for x in data.values()])
-        nameWidth = uil.getWidestTextExtent(font, [x['name'] for x in data.values()])
-
-        self.theList.SetColumns([
-            olv.ColumnDefn('Nickname', 'left', gbl.PRJ_NICKNAME_WIDTH, 'nickname'),
-            olv.ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=ml.prettify),
-            olv.ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=ml.prettify),
-            olv.ColumnDefn('PI', 'left', 150, 'PiName'),
-            olv.ColumnDefn('PM', 'left', 150, 'PmName'),
-            olv.ColumnDefn('Name', 'left', nameWidth, 'name'),
-            olv.ColumnDefn('Notes', 'left', 0, 'notes')
-        ])
+        self.theList.SetColumns(self.tabDef.colDefs)
 
         self.theList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
         self.theList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
         self.theList.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
 
-        self.theList.SetObjects(list(data.values()))
+        self.theList.SetObjects(list(self.rex.values()))
 
         layout.Add(self.theList, 0, wx.ALL | wx.EXPAND, 5)
 
@@ -112,44 +96,48 @@ class TabPanel(wx.Panel):
 
     def onDblClick(self, event):
         obj = event.EventObject.GetSelectedObject()
-        asns = self.dataset.getAsns(Dao(), obj['id'])
+        asns = self.tabDef.dal.getAsns(Dao(), obj['id'])
 
-        dlg = PrjDetailDlg(self, wx.ID_ANY, 'Project Details', prj['id'], asns)
+        dlg = self.tabDef.dlg(self, wx.ID_ANY,
+                              self.tabDef.tblName + ' Details', obj['id'], asns)
         dlg.ShowModal()
 
     def onRightClick(self, event):
-        prj = event.EventObject.GetSelectedObject()
-        wx.MessageBox(prj['notes'], 'Notes', wx.OK | wx.ICON_INFORMATION)
+        obj = event.EventObject.GetSelectedObject()
+        wx.MessageBox(obj['notes'], 'Notes', wx.OK | wx.ICON_INFORMATION)
 
     def onAddBtnClick(self, event):
-        dlg = PrjDetailDlg(self, wx.ID_ANY, 'New Project', None, None)
+        dlg = self.tabDef.dlg(self, wx.ID_ANY,
+                               'New ' + self.tabDef.tblName, None, None)
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
         ids = [x['id'] for x in self.theList.GetSelectedObjects()]
         if not ids:
-            wx.MessageBox('No projects selected!', 'Oops!',
+            msg = 'No %s(s) selected!' % (self.tabDef.tblName,)
+            wx.MessageBox(msg, 'Oops!',
                           wx.OK | wx.ICON_ERROR)
             return
-        dlg = wx.MessageDialog(self, 'Drop selected projects?', 'Just making sure',
+        msg = 'Drop selected %s(s)?' % (self.tabDef.tblName,)
+        dlg = wx.MessageDialog(self, msg, 'Just making sure',
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = Project.delete(Dao(), ids)
+            result = self.tabDef.dal.delete(Dao(), ids)
             print(result)
 
     def onFltr(self, event):
         c = chr(event.GetUnicodeKey())
         if not c.isalpha():
             if c == '\b':
-                self.srchValue = self.srchValue[:-1]
+                self.srchTarget = self.srchTarget[:-1]
         else:
-            self.srchValue += c
+            self.srchTarget += c
         col = self.theList.columns[0:1]
         if event.EventObject.Parent.Name == 'notesFltr':
             col = self.theList.columns[4:1]
         self.theList.SetFilter(olv.Filter.TextSearch(
-            self.theList, columns=col, text=self.srchValue))
+            self.theList, columns=col, text=self.srchTarget))
         self.theList.RepopulateList()
         event.Skip()
 
@@ -157,4 +145,4 @@ class TabPanel(wx.Panel):
         event.EventObject.Clear()
         self.theList.SetFilter(None)
         self.theList.RepopulateList()
-        self.srchValue = ''
+        self.srchTarget = ''
