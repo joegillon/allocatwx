@@ -55,7 +55,13 @@ def add(dao, d):
         ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
     )
     vals = list(d.values())
-    return dao.execute(sql, vals)
+    try:
+        return dao.execute(sql, vals)
+    except Exception as e:
+        if str(e) == 'UNIQUE constraint failed: employees.name':
+            raise Exception('Employee name is not unique!')
+        else:
+            raise
 
 
 def update(dao, emp, d):
@@ -66,7 +72,13 @@ def update(dao, emp, d):
            "WHERE id=?;") % (
         ','.join(f + '=?' for f in d.keys()))
     vals = list(d.values()) + [emp['id']]
-    return dao.execute(sql, vals)
+    try:
+        return dao.execute(sql, vals)
+    except Exception as e:
+        if str(e) == 'UNIQUE constraint failed: employees.name':
+            raise Exception('Employee name is not unique!')
+        else:
+            raise
 
 
 def delete(dao, ids):

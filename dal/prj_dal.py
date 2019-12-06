@@ -54,8 +54,6 @@ def getAsns(dao, prjid, month=None):
 
 def add(dao, d):
     d['active'] = 1
-    d['PI'] = None
-    d['PM'] = None
     sql = "INSERT INTO projects (%s) VALUES (%s);" % (
         ','.join(d.keys()), '?' + ',?' * (len(d) - 1)
     )
@@ -63,8 +61,9 @@ def add(dao, d):
     try:
         return dao.execute(sql, vals)
     except Exception as e:
-        if str(e) == 'UNIQUE constraint failed: projects.nickname':
-            raise Exception('Project nickname is not unique!')
+        s = str(e)
+        if s.startswith('UNIQUE constraint failed'):
+            raise Exception('Project %s is not unique!' % s.split('.')[1])
         else:
             raise
 
@@ -79,7 +78,14 @@ def update(dao, prj, d):
            "WHERE id=?;") % (
               ','.join(f + '=?' for f in d.keys()))
     vals = list(d.values()) + [prj['id']]
-    return dao.execute(sql, vals)
+    try:
+        return dao.execute(sql, vals)
+    except Exception as e:
+        s = str(e)
+        if s.startswith('UNIQUE constraint failed'):
+            raise Exception('Project %s is not unique!' % s.split('.')[1])
+        else:
+            raise
 
 
 def delete(dao, ids):

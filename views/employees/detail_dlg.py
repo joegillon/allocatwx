@@ -1,17 +1,18 @@
-import wx
-from views.employees.asn_list_panel import EmpAsnListPanel
-from views.employees.form_panel import EmpFormPanel
+from views.detail_dlg import DetailDlg
+from views.asn_list_panel import AsnListPanel
+from views.employees.frm_panel import EmpFormPanel
+from views.employees.asn_dlg import EmpAsnDlg
+import dal.emp_dal as emp_dal
+import globals as gbl
 
 
-class EmpDetailDlg(wx.Dialog):
-    def __init__(self, parent, winId, title, empId, asns):
-        wx.Dialog.__init__(self, parent, winId, title, size=(1200, 500))
-        layout = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.frmPanel = EmpFormPanel(self, empId)
-        self.dtlPanel = EmpAsnListPanel(self, empId, asns)
-
-        layout.Add(self.frmPanel, 0, wx.ALL, 5)
-        layout.Add(self.dtlPanel, 0, wx.ALL, 5)
-
-        self.SetSizer(layout)
+class EmpDetailDlg(DetailDlg):
+    def getPanels(self, empId, asns):
+        frmPanel = EmpFormPanel(self, empId)
+        dtlPanel = AsnListPanel(self,
+                                'Project',
+                                gbl.empRex[empId],
+                                asns,
+                                EmpAsnDlg,
+                                emp_dal)
+        return frmPanel, dtlPanel

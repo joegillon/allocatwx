@@ -3,16 +3,18 @@ import ObjectListView as olv
 import globals as gbl
 import lib.month_lib as ml
 import lib.ui_lib as uil
-from views.employees.asn_dlg import EmpAsnDlg
 
 
-class EmpAsnListPanel(wx.Panel):
-    def __init__(self, parent, empId, asns):
+class AsnListPanel(wx.Panel):
+    def __init__(self, parent, tblName, rec, asns, dlg, dal):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.emp = gbl.empRex[empId] if empId else None
+        self.tblName = tblName
+        self.rec = rec
+        self.dlg = dlg
+        self.dal = dal
         self.theList = None
         self.op = None
         self.addBtn = None
@@ -34,7 +36,7 @@ class EmpAsnListPanel(wx.Panel):
 
         self.addBtn = uil.toolbar_button(panel, 'Add Assignment')
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
-        if not self.emp:
+        if not self.rec:
             self.addBtn.Disable()
         layout.Add(self.addBtn, 0, wx.ALL, 5)
 
@@ -60,7 +62,7 @@ class EmpAsnListPanel(wx.Panel):
                                           style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         self.theList.SetColumns([
-            olv.ColumnDefn('Project', 'left', 200, 'project'),
+            olv.ColumnDefn(self.tblName, 'left', 200, self.tblName.lower()),
             olv.ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=ml.prettify),
             olv.ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=ml.prettify),
             olv.ColumnDefn('Effort', 'left', 100, 'effort'),
@@ -84,15 +86,14 @@ class EmpAsnListPanel(wx.Panel):
 
     def onDblClick(self, event):
         asn = event.EventObject.GetSelectedObject()
-        dlg = EmpAsnDlg(self, -1, 'Assignment Details', self.emp['id'], asn)
+        dlg = self.dlg(self, -1, 'Assignment Details', self.rec['id'], asn)
         dlg.ShowModal()
 
     def onAddBtnClick(self, event):
-        dlg = EmpAsnDlg(self, -1, 'New Assignment', self.emp['id'], None)
+        dlg = self.dlg(self, -1, 'New Assignment', self.rec['id'], None)
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
-        import dal.emp_dal as emp_dal
         from dal.dao import Dao
 
         ids = [x['id'] for x in self.theList.GetSelectedObjects()]
@@ -104,7 +105,7 @@ class EmpAsnListPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = emp_dal.delete(Dao(), ids)
+            result = self.dal.delete(Dao(), ids)
             print(result)
 
     def activateAddBtn(self):

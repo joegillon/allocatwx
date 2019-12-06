@@ -68,7 +68,7 @@ def showListHelp(event):
 
 
 class ObjComboBox(wx.ComboBox):
-    def __init__(self, parent, choices, display_fld, style=None):
+    def __init__(self, parent, choices, display_fld, name, style=None):
         wx.ComboBox.__init__(self, parent, wx.ID_ANY, style=style)
 
         isDict = isinstance(choices[0], dict)
