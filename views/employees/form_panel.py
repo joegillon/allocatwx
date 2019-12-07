@@ -7,10 +7,9 @@ import dal.emp_dal as emp_dal
 
 class EmpFormPanel(FormPanel):
 
-    def setFormFields(self):
-        self.tblName = 'Employee'
+    def setProps(self):
+        self.ownerName = 'Employee'
         self.dal = emp_dal
-        self.rex = gbl.empRex
 
         self.txtName = None
         self.txtGrade = None
@@ -19,13 +18,13 @@ class EmpFormPanel(FormPanel):
         self.chkInvestigator = None
         self.txtNotes = None
 
-    def getLayout(self, panel):
+    def getLayout(self, panel, emp):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblName = wx.StaticText(panel, wx.ID_ANY, 'Employee Name: *')
         self.txtName = wx.TextCtrl(panel, wx.ID_ANY,
-                                   uil.displayValue(self.rec, 'name'),
+                                   uil.displayValue(emp, 'name'),
                                    size=(500, -1))
         nameLayout.Add(lblName, 0, wx.ALL, 5)
         nameLayout.Add(self.txtName, 0, wx.ALL | wx.EXPAND, 5)
@@ -34,7 +33,7 @@ class EmpFormPanel(FormPanel):
         gsfLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblGrade = wx.StaticText(panel, wx.ID_ANY, 'Grade: ')
         self.txtGrade = wx.TextCtrl(panel, wx.ID_ANY,
-                                    str(uil.displayValue(self.rec, 'grade')),
+                                    str(uil.displayValue(emp, 'grade')),
                                     size=(50, -1))
         gsfLayout.Add(lblGrade, 0, wx.ALL, 5)
         gsfLayout.Add(self.txtGrade, 0, wx.ALL, 5)
@@ -42,13 +41,13 @@ class EmpFormPanel(FormPanel):
 
         lblStep = wx.StaticText(panel, wx.ID_ANY, 'Step: ')
         self.txtStep = wx.TextCtrl(panel, wx.ID_ANY,
-                                   str(uil.displayValue(self.rec, 'step')), size=(50, -1))
+                                   str(uil.displayValue(emp, 'step')), size=(50, -1))
         gsfLayout.Add(lblStep, 0, wx.ALL, 5)
         gsfLayout.Add(self.txtStep, 0, wx.ALL, 5)
 
         lblFte = wx.StaticText(panel, wx.ID_ANY, 'FTE: ')
         self.txtFte = wx.TextCtrl(panel, wx.ID_ANY,
-                                  str(uil.displayValue(self.rec, 'fte')), size=(50, -1))
+                                  str(uil.displayValue(emp, 'fte')), size=(50, -1))
         gsfLayout.Add(lblFte, 0, wx.ALL, 5)
         gsfLayout.Add(self.txtFte, 0, wx.ALL, 5)
 
@@ -61,7 +60,7 @@ class EmpFormPanel(FormPanel):
         notesLayout = wx.BoxSizer(wx.VERTICAL)
         lblNotes = wx.StaticText(panel, wx.ID_ANY, 'Notes:')
         self.txtNotes = wx.TextCtrl(panel, wx.ID_ANY,
-                                    uil.displayValue(self.rec, 'notes'),
+                                    uil.displayValue(emp, 'notes'),
                                     style=wx.TE_MULTILINE, size=(500, 200))
         notesLayout.Add(lblNotes, 0, wx.ALL, 5)
         notesLayout.Add(self.txtNotes, 0, wx.ALL, 5)
@@ -77,10 +76,10 @@ class EmpFormPanel(FormPanel):
         self.formData['investigator'] = self.chkInvestigator.GetValue()
         self.formData['notes'] = self.txtNotes.GetValue()
 
-    def validate(self):
+    def validate(self, emp):
         import lib.validator_lib as vl
 
-        emp_id = self.rec['id'] if self.rec else 0
+        emp_id = emp['id'] if emp else 0
         emp_match = vl.EmployeeMatch(emp_id, gbl.empNames)
         errMsg = vl.validateEmpName(self.formData['name'], emp_match)
         if errMsg == '':

@@ -5,19 +5,17 @@ from dal.dao import Dao
 
 
 class FormPanel(wx.Panel):
-    def __init__(self, parent, recId):
+    def __init__(self, parent, ownerRec):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.tblName = None
-        self.dal = None
-        self.rex = None
-
-        self.setFormFields()
-
-        self.rec = self.rex[recId] if recId else None
+        self.ownerName = None
+        self.ownerRec = ownerRec
         self.formData = {}
+        self.dal = None
+
+        self.setProps()
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel()
@@ -29,7 +27,7 @@ class FormPanel(wx.Panel):
 
         frmPanel.SetFocus()
 
-    def setFormFields(self):
+    def setProps(self):
         raise NotImplementedError("Please Implement this method")
 
     def buildToolbarPanel(self):
@@ -39,10 +37,10 @@ class FormPanel(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        dropBtn = uil.toolbar_button(panel, 'Drop ' + self.tblName)
+        dropBtn = uil.toolbar_button(panel, 'Drop ' + self.ownerName)
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropClick)
 
-        saveBtn = uil.toolbar_button(panel, 'Save ' + self.tblName)
+        saveBtn = uil.toolbar_button(panel, 'Save ' + self.ownerName)
         saveBtn.Bind(wx.EVT_BUTTON, self.onSaveClick)
 
         layout.Add(dropBtn, 0, wx.ALL, 5)
@@ -59,31 +57,32 @@ class FormPanel(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.frmBg))
         panel.SetForegroundColour('black')
 
-        layout = self.getLayout(panel)
+        layout = self.getLayout(panel, self.ownerRec)
 
         panel.SetSizer(layout)
         return panel
 
-    def getLayout(self, panel):
+    def getLayout(self, panel, ownerRec):
         raise NotImplementedError("Please Implement this method")
 
     def onDropClick(self, event):
-        dlg = wx.MessageDialog(self, 'Drop ' + self.tblName + '?', 'Just making sure',
+        dlg = wx.MessageDialog(self, 'Drop ' + self.ownerName + '?',
+                               'Just making sure',
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = self.dal.delete(Dao(), [self.rec['id']])
+            result = self.dal.delete(Dao(), [self.ownerRec['id']])
             print(result)
 
     def onSaveClick(self, event):
         self.getFormData()
 
-        if self.validate():
-            if self.rec is None:
+        if self.validate(self.ownerRec):
+            if self.ownerRec is None:
                 result = self.dal.add(Dao(), self.formData)
                 print(result)
             else:
-                result = self.dal.update(Dao(), self.rec['id'], self.formData)
+                result = self.dal.update(Dao(), self.ownerRec['id'], self.formData)
                 print(result)
             self.Parent.dtlPanel.activateAddBtn()
             self.Parent.Close()
@@ -91,5 +90,5 @@ class FormPanel(wx.Panel):
     def getFormData(self):
         raise NotImplementedError("Please Implement this method")
 
-    def validate(self):
+    def validate(self, ownerRec):
         raise NotImplementedError("Please Implement this method")

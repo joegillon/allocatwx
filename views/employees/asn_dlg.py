@@ -1,14 +1,8 @@
-import wx
+from views.asn_dlg import AsnDlg
 from views.employees.asn_form_panel import EmpAsnFormPanel
 
 
-class EmpAsnDlg(wx.Dialog):
-    def __init__(self, parent, winId, title, empId, asn):
-        wx.Dialog.__init__(self, parent, winId, title, size=(500, 400))
-        layout = wx.BoxSizer(wx.VERTICAL)
+class EmpAsnDlg(AsnDlg):
 
-        panel = EmpAsnFormPanel(self, empId, asn)
-
-        layout.Add(panel, 0, wx.ALL | wx.EXPAND, 5)
-
-        self.SetSizer(layout)
+    def getPanel(self, ownerId, asn):
+        return EmpAsnFormPanel(self, ownerId, asn)

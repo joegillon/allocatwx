@@ -5,31 +5,19 @@ import lib.ui_lib as uil
 
 
 class PrjAsnFormPanel(AsnFormPanel):
-    def getRec(self, prjId):
-        return gbl.prjRex[prjId] if prjId else None
+    def setProps(self, prjId):
+        self.ownerRec = gbl.prjRex[prjId] if prjId else None
+        self.ownerName = 'Project'
+        self.ownerNameFld = 'nickname'
+        self.assigneeName = 'Employee'
+        self.assigneeNameFld = 'employee'
 
-    def getEmpLayout(self, panel):
-        empLayout = wx.BoxSizer(wx.HORIZONTAL)
-
-        value = 'Employee: %s' % (self.asn['employee'],) if self.asn else 'Employee: *'
-        lblEmp = wx.StaticText(panel, wx.ID_ANY, value)
-        empLayout.Add(lblEmp, 0, wx.ALL, 5)
-
-        if not self.asn:
-            self.cboOwner = uil.ObjComboBox(panel,
-                                            list(gbl.empRex.values()),
-                                            'name',
-                                            'Employee',
-                                            style=wx.CB_READONLY)
-            empLayout.Add(self.cboOwner, 0, wx.ALL | wx.EXPAND, 5)
-
-        return empLayout
-
-    def getPrjLayout(self, panel):
-        prjLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblPrj = wx.StaticText(panel, wx.ID_ANY, 'Project: ' + self.rec['nickname'])
-        prjLayout.Add(lblPrj, 0, wx.ALL | wx.EXPAND, 5)
-        return prjLayout
+    def getComboBox(self, panel):
+        return uil.ObjComboBox(panel,
+                               list(gbl.empRex.values()),
+                               'name',
+                               'Employee',
+                               style=wx.CB_READONLY)
 
     def processAsn(self):
         from dal.dao import Dao
@@ -38,7 +26,7 @@ class PrjAsnFormPanel(AsnFormPanel):
         d = self.formData
         if self.asn is None:
             d['employee_id'] = self.cboOwner.getSelectionId()
-            d['project_id'] = self.rec['id']
+            d['project_id'] = self.ownerRec['id']
             result = asn_dal.add(Dao(), d)
             print(result)
         else:

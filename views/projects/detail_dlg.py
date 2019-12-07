@@ -1,17 +1,11 @@
 from views.detail_dlg import DetailDlg
-from views.asn_list_panel import AsnListPanel
-from views.projects.frm_panel import PrjFormPanel
-from views.projects.asn_dlg import PrjAsnDlg
-import dal.prj_dal as prj_dal
+from views.projects.form_panel import PrjFormPanel
+from views.projects.asn_list_panel import PrjAsnListPanel
 import globals as gbl
 
 class PrjDetailDlg(DetailDlg):
-    def getPanels(self, prjId, asns):
-        frmPanel = PrjFormPanel(self, prjId)
-        dtlPanel = AsnListPanel(self,
-                                'Employee',
-                                gbl.prjRex[prjId],
-                                asns,
-                                PrjAsnDlg,
-                                prj_dal)
+    def getPanels(self, prjId):
+        prj = gbl.prjRex[prjId] if prjId else None
+        frmPanel = PrjFormPanel(self, prj)
+        dtlPanel = PrjAsnListPanel(self, prjId)
         return frmPanel, dtlPanel

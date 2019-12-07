@@ -3,29 +3,37 @@ import ObjectListView as olv
 import globals as gbl
 import lib.month_lib as ml
 import lib.ui_lib as uil
+from dal.dao import Dao
 
 
 class AsnListPanel(wx.Panel):
-    def __init__(self, parent, tblName, rec, asns, dlg, dal):
+    def __init__(self, parent, ownerId):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.tblName = tblName
-        self.rec = rec
-        self.dlg = dlg
-        self.dal = dal
+        self.ownerId = ownerId
+        self.assignee = None
+        self.dlg = None
+        self.dal = None
         self.theList = None
         self.op = None
         self.addBtn = None
 
+        self.setProps(ownerId)
+
+        self.asns = self.dal.getAsns(Dao(), self.ownerId)
+
         tbPanel = self.buildToolbarPanel()
-        lstPanel = self.buildListPanel(asns)
+        lstPanel = self.buildListPanel()
 
         layout.Add(tbPanel, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(lstPanel, 0, wx.ALL | wx.EXPAND, 5)
 
         self.SetSizerAndFit(layout)
+
+    def setProps(self, ownerId):
+        raise NotImplementedError("Please Implement this method")
 
     def buildToolbarPanel(self):
         panel = wx.Panel(
@@ -36,7 +44,7 @@ class AsnListPanel(wx.Panel):
 
         self.addBtn = uil.toolbar_button(panel, 'Add Assignment')
         self.addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
-        if not self.rec:
+        if not self.ownerId:
             self.addBtn.Disable()
         layout.Add(self.addBtn, 0, wx.ALL, 5)
 
@@ -52,7 +60,7 @@ class AsnListPanel(wx.Panel):
 
         return panel
 
-    def buildListPanel(self, data):
+    def buildListPanel(self):
         panel = wx.Panel(self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize)
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.lstBg)
         layout = wx.BoxSizer(wx.HORIZONTAL)
@@ -62,16 +70,18 @@ class AsnListPanel(wx.Panel):
                                           style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         self.theList.SetColumns([
-            olv.ColumnDefn(self.tblName, 'left', 200, self.tblName.lower()),
-            olv.ColumnDefn('First Month', 'left', 105, 'first_month', stringConverter=ml.prettify),
-            olv.ColumnDefn('Last Month', 'left', 100, 'last_month', stringConverter=ml.prettify),
+            olv.ColumnDefn(self.assignee, 'left', 200, self.assignee.lower()),
+            olv.ColumnDefn('First Month', 'left', 105, 'first_month',
+                           stringConverter=ml.prettify),
+            olv.ColumnDefn('Last Month', 'left', 100, 'last_month',
+                           stringConverter=ml.prettify),
             olv.ColumnDefn('Effort', 'left', 100, 'effort'),
         ])
 
         self.theList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
         self.theList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
 
-        self.theList.SetObjects(data)
+        self.theList.SetObjects(self.asns)
 
         layout.Add(self.theList, 1, wx.ALL | wx.EXPAND, 5)
 
@@ -86,11 +96,11 @@ class AsnListPanel(wx.Panel):
 
     def onDblClick(self, event):
         asn = event.EventObject.GetSelectedObject()
-        dlg = self.dlg(self, -1, 'Assignment Details', self.rec['id'], asn)
+        dlg = self.dlg(self, -1, 'Assignment Details', self.ownerId, asn)
         dlg.ShowModal()
 
     def onAddBtnClick(self, event):
-        dlg = self.dlg(self, -1, 'New Assignment', self.rec['id'], None)
+        dlg = self.dlg(self, -1, 'New Assignment', self.ownerId, None)
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):

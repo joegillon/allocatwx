@@ -4,13 +4,20 @@ import lib.ui_lib as uil
 
 
 class AsnFormPanel(wx.Panel):
-    def __init__(self, parent, recId, asn=None):
+    def __init__(self, parent, ownerId, asn=None):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.rec = self.getRec(recId)
         self.asn = asn
+        self.ownerRec = None
+        self.ownerName = None
+        self.ownerNameFld = None
+        self.assigneeName = None
+        self.assigneeNameFld = None
+
+        self.setProps(ownerId)
+
         self.cboOwner = None
         self.txtFirstMonth = None
         self.txtLastMonth = None
@@ -26,7 +33,7 @@ class AsnFormPanel(wx.Panel):
 
         self.SetSizer(layout)
 
-    def getRec(self, recId):
+    def setProps(self, ownerId):
         raise NotImplementedError("Please Implement this method")
 
     def buildToolbarPanel(self):
@@ -56,11 +63,23 @@ class AsnFormPanel(wx.Panel):
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.frmBg)
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        empLayout = self.getEmpLayout(panel)
-        layout.Add(empLayout)
+        ownerLayout = wx.BoxSizer(wx.HORIZONTAL)
+        value = '%s: %s' % (self.ownerName, self.ownerRec[self.ownerNameFld])
+        lbl = wx.StaticText(panel, wx.ID_ANY, value)
+        ownerLayout.Add(lbl, 0, wx.ALL | wx.EXPAND, 5)
+        layout.Add(ownerLayout, 0, wx.ALL | wx.EXPAND, 5)
 
-        prjLayout = self.getPrjLayout(panel)
-        layout.Add(prjLayout)
+        assigneeLayout = wx.BoxSizer(wx.HORIZONTAL)
+        value = '%s: ' % (self.assigneeName,)
+        if self.asn:
+            value += self.asn[self.assigneeNameFld]
+        else:
+            self.cboOwner = self.getComboBox(panel)
+        lbl = wx.StaticText(panel, wx.ID_ANY, value)
+        assigneeLayout.Add(lbl, 0, wx.ALL, 5)
+        if self.cboOwner:
+            assigneeLayout.Add(self.cboOwner, 0, wx.ALL | wx.EXPAND, 5)
+        layout.Add(assigneeLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         intervalLayout = wx.BoxSizer(wx.HORIZONTAL)
 
@@ -99,16 +118,10 @@ class AsnFormPanel(wx.Panel):
 
         return panel
 
-    def getEmpLayout(self, panel):
-        raise NotImplementedError("Please Implement this method")
-
-    def getPrjLayout(self, panel):
+    def getComboBox(self, panel):
         raise NotImplementedError("Please Implement this method")
 
     def onSaveClick(self, event):
-        from dal.dao import Dao
-        import dal.asn_dal as asn_dal
-
         self.getFormData()
 
         if self.validate():
@@ -129,7 +142,7 @@ class AsnFormPanel(wx.Panel):
         import lib.validator_lib as validators
 
         if self.cboOwner:
-            if not self.formatData['owner']:
+            if not self.formData['owner']:
                 errMsg = '%s is required!' % (self.cboOwner.name,)
                 validators.showErrMsg(self.cboOwner, errMsg)
                 return False

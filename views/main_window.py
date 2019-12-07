@@ -1,8 +1,7 @@
 import wx
 import globals as gbl
-from views.tab_panel import TabPanel
-from views.projects.tab_def import PrjTabDef
-from views.employees.tab_def import EmpTabDef
+from views.projects.tab_panel import PrjTabPanel
+from views.employees.tab_panel import EmpTabPanel
 from views.efforts.eff_tab import EffTab
 
 
@@ -15,8 +14,8 @@ class MainWindow(wx.Frame):
         panel.SetBackgroundColour(gbl.COLOR_SCHEME.pnlBg)
         notebook = wx.Notebook(panel)
 
-        notebook.AddPage(TabPanel(notebook, PrjTabDef()), 'Projects')
-        notebook.AddPage(TabPanel(notebook, EmpTabDef()), 'Employees')
+        notebook.AddPage(PrjTabPanel(notebook), 'Projects')
+        notebook.AddPage(EmpTabPanel(notebook), 'Employees')
         notebook.AddPage(EffTab(notebook), 'Scoreboard')
         layout.Add(notebook, 0, wx.EXPAND, 5)
 

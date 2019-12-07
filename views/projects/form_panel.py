@@ -7,10 +7,9 @@ import dal.prj_dal as prj_dal
 
 class PrjFormPanel(FormPanel):
 
-    def setFormFields(self):
-        self.tblName = 'Project'
+    def setProps(self):
+        self.ownerName = 'Project'
         self.dal = prj_dal
-        self.rex = gbl.prjRex
 
         self.txtName = None
         self.txtNickname = None
@@ -20,60 +19,66 @@ class PrjFormPanel(FormPanel):
         self.cboPM = None
         self.txtNotes = None
 
-    def getLayout(self, panel):
+    def getLayout(self, panel, prj):
         layout = wx.BoxSizer(wx.VERTICAL)
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblName = wx.StaticText(panel, wx.ID_ANY, 'Project Name: *')
         self.txtName = wx.TextCtrl(panel, wx.ID_ANY,
-                                   uil.displayValue(self.rec, 'name'),
+                                   uil.displayValue(prj, 'name'),
                                    size=(500, -1))
         nameLayout.Add(lblName, 0, wx.ALL, 5)
         nameLayout.Add(self.txtName, 0, wx.ALL | wx.EXPAND, 5)
+
         layout.Add(nameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         nicknameLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblNickname = wx.StaticText(panel, wx.ID_ANY, 'Nickname: *')
         self.txtNickname = wx.TextCtrl(panel, wx.ID_ANY,
-                                       uil.displayValue(self.rec, 'nickname'), size=(400, -1))
+                                       uil.displayValue(prj, 'nickname'), size=(400, -1))
         nicknameLayout.Add(lblNickname, 0, wx.ALL, 5)
         nicknameLayout.Add(self.txtNickname, 0, wx.ALL, 5)
+
         layout.Add(nicknameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         intervalLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblFirstMonth = wx.StaticText(panel, wx.ID_ANY, 'First Month: *')
-        value = ml.prettify(uil.displayValue(self.rec, 'first_month'))
+        value = ml.prettify(uil.displayValue(prj, 'first_month'))
         self.txtFirstMonth = uil.getMonthCtrl(panel, value)
         intervalLayout.Add(lblFirstMonth, 0, wx.ALL, 5)
         intervalLayout.Add(self.txtFirstMonth, 0, wx.ALL, 5)
 
         lblLastMonth = wx.StaticText(panel, wx.ID_ANY, 'Last Month: *')
-        value = ml.prettify(uil.displayValue(self.rec, 'last_month'))
+        value = ml.prettify(uil.displayValue(prj, 'last_month'))
         self.txtLastMonth = uil.getMonthCtrl(panel, value)
         intervalLayout.Add(lblLastMonth, 0, wx.ALL, 5)
         intervalLayout.Add(self.txtLastMonth, 0, wx.ALL, 5)
+
         layout.Add(intervalLayout, 0, wx.ALL, 5)
 
         personsLayout = wx.BoxSizer(wx.HORIZONTAL)
-        lblPI = wx.StaticText(panel, wx.ID_ANY, 'PI:')
 
+        lblPI = wx.StaticText(panel, wx.ID_ANY, 'PI:')
         pis = [rec for rec in gbl.empRex.values() if rec['investigator'] == 1]
         self.cboPI = uil.ObjComboBox(panel, pis, 'name', 'Employee', style=wx.CB_READONLY)
         personsLayout.Add(lblPI, 0, wx.ALL, 5)
         personsLayout.Add(self.cboPI, 0, wx.ALL, 5)
+
         lblPM = wx.StaticText(panel, wx.ID_ANY, 'PM:')
         pms = [rec for rec in gbl.empRex.values() if rec['investigator'] == 0]
         self.cboPM = uil.ObjComboBox(panel, pms, 'name', 'Employee', style=wx.CB_READONLY)
         personsLayout.Add(lblPM, 0, wx.ALL, 5)
         personsLayout.Add(self.cboPM, 0, wx.ALL, 5)
+
         layout.Add(personsLayout, 0, wx.ALL, 5)
 
         notesLayout = wx.BoxSizer(wx.VERTICAL)
         lblNotes = wx.StaticText(panel, wx.ID_ANY, 'Notes:')
-        self.txtNotes = wx.TextCtrl(panel, wx.ID_ANY, uil.displayValue(self.rec, 'notes'),
+        self.txtNotes = wx.TextCtrl(panel, wx.ID_ANY, uil.displayValue(prj, 'notes'),
                                     style=wx.TE_MULTILINE, size=(500, 200))
         notesLayout.Add(lblNotes, 0, wx.ALL, 5)
         notesLayout.Add(self.txtNotes, 0, wx.ALL, 5)
+
         layout.Add(notesLayout, 0, wx.ALL, 5)
 
         return layout
@@ -89,10 +94,10 @@ class PrjFormPanel(FormPanel):
             'notes': self.txtNotes.GetValue()
         }
 
-    def validate(self):
+    def validate(self, prj):
         import lib.validator_lib as vl
 
-        prj_id = self.rec['id'] if self.rec else 0
+        prj_id = prj['id'] if prj else 0
         prj_match = vl.ProjectMatch(prj_id, gbl.prjNames)
         errMsg = vl.validatePrjName(self.formData['name'], prj_match)
         if errMsg:

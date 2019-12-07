@@ -2,21 +2,22 @@ import wx
 import ObjectListView as olv
 import globals as gbl
 import lib.ui_lib as uil
-from dal.dao import Dao
 
 
 class TabPanel(wx.Panel):
-    def __init__(self, parent, tabDef):
+    def __init__(self, parent):
         wx.Panel.__init__(self, parent)
         self.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.pnlBg))
         layout = wx.BoxSizer(wx.VERTICAL)
 
-        self.tabDef = tabDef
-        self.rex = self.tabDef.dal.get_all_active(Dao())
-
         # Need properties for the filters
         self.theList = None
         self.srchTarget = ''
+        self.srchFld = ''
+        self.ownerName = ''
+        self.rex = {}
+
+        self.setProps()
 
         tbPanel = self.buildToolbarPanel()
         lstPanel = self.buildListPanel()
@@ -26,6 +27,9 @@ class TabPanel(wx.Panel):
 
         self.SetSizerAndFit(layout)
 
+    def setProps(self):
+        raise NotImplementedError("Please Implement this method")
+
     def buildToolbarPanel(self):
         panel = wx.Panel(
             self, wx.ID_ANY, wx.DefaultPosition, wx.DefaultSize
@@ -33,15 +37,15 @@ class TabPanel(wx.Panel):
         panel.SetBackgroundColour(wx.Colour(gbl.COLOR_SCHEME.tbBg))
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
-        addBtn = uil.toolbar_button(panel, 'Add ' + self.tabDef.tblName)
+        addBtn = uil.toolbar_button(panel, 'Add ' + self.ownerName)
         addBtn.Bind(wx.EVT_BUTTON, self.onAddBtnClick)
         layout.Add(addBtn, 0, wx.ALL, 5)
 
-        dropBtn = uil.toolbar_button(panel, 'Drop ' + self.tabDef.tblName + '(s)')
+        dropBtn = uil.toolbar_button(panel, 'Drop ' + self.ownerName + '(s)')
         dropBtn.Bind(wx.EVT_BUTTON, self.onDropBtnClick)
         layout.Add(dropBtn, 0, wx.ALL, 5)
 
-        lblNameFltr = uil.getToolbarLabel(panel, self.tabDef.srchFld + ':')
+        lblNameFltr = uil.getToolbarLabel(panel, self.srchFld + ':')
         lblNameFltr.SetForegroundColour(wx.Colour(gbl.COLOR_SCHEME.tbFg))
         layout.Add(lblNameFltr, 0, wx.ALL, 5)
         nameFltr = wx.SearchCtrl(panel, wx.ID_ANY, '',
@@ -79,14 +83,12 @@ class TabPanel(wx.Panel):
                                           size=wx.Size(-1, 550),
                                           style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
-        self.theList.SetColumns(self.tabDef.colDefs)
+        self.buildList()
 
         self.theList.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.onDblClick)
         self.theList.Bind(wx.EVT_LIST_ITEM_RIGHT_CLICK, self.onRightClick)
 
         self.theList.SetBackgroundColour(gbl.COLOR_SCHEME.lstHdr)
-
-        self.theList.SetObjects(list(self.rex.values()))
 
         layout.Add(self.theList, 0, wx.ALL | wx.EXPAND, 5)
 
@@ -94,37 +96,42 @@ class TabPanel(wx.Panel):
 
         return panel
 
-    def onDblClick(self, event):
-        obj = event.EventObject.GetSelectedObject()
-        asns = self.tabDef.dal.getAsns(Dao(), obj['id'])
+    def buildList(self):
+        raise NotImplementedError("Please Implement this method")
 
-        dlg = self.tabDef.dlg(self, wx.ID_ANY,
-                              self.tabDef.tblName + ' Details', obj['id'], asns)
+    def onDblClick(self, event):
+        owner = event.EventObject.GetSelectedObject()
+        dlg = self.getAsnsDlg(owner['id'])
         dlg.ShowModal()
+
+    def getAsnsDlg(self, ownerId=None):
+        raise NotImplementedError("Please Implement this method")
 
     def onRightClick(self, event):
         obj = event.EventObject.GetSelectedObject()
         wx.MessageBox(obj['notes'], 'Notes', wx.OK | wx.ICON_INFORMATION)
 
     def onAddBtnClick(self, event):
-        dlg = self.tabDef.dlg(self, wx.ID_ANY,
-                               'New ' + self.tabDef.tblName, None, None)
+        dlg = self.getAsnsDlg()
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):
         ids = [x['id'] for x in self.theList.GetSelectedObjects()]
         if not ids:
-            msg = 'No %s(s) selected!' % (self.tabDef.tblName,)
+            msg = 'No records selected!'
             wx.MessageBox(msg, 'Oops!',
                           wx.OK | wx.ICON_ERROR)
             return
-        msg = 'Drop selected %s(s)?' % (self.tabDef.tblName,)
+        msg = 'Drop selected records?'
         dlg = wx.MessageDialog(self, msg, 'Just making sure',
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = self.tabDef.dal.delete(Dao(), ids)
+            result = self.dropRex(ids)
             print(result)
+
+    def dropRex(self, ids):
+        raise NotImplementedError("Please Implement this method")
 
     def onFltr(self, event):
         c = chr(event.GetUnicodeKey())
