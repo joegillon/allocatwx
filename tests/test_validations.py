@@ -25,12 +25,15 @@ class ValidationTestSuite(unittest.TestCase):
         # Set current project to ID 18 (Test Name 3)
         prj_match = ProjectMatch(18, self.prjNames)
 
+        # Project name cannot be None
         result = validatePrjName(None, prj_match)
         self.assertEqual(result, 'Project name required!')
 
+        # Project name cannot be ''
         result = validatePrjName('', prj_match)
         self.assertEqual(result, 'Project name required!')
 
+        # Project name must be unique
         result = validatePrjName('test  name 2', prj_match)
         self.assertEqual(result, 'Project name taken!')
 
@@ -112,15 +115,15 @@ class ValidationTestSuite(unittest.TestCase):
             'first_month': '1407',
             'last_month': '1906'
         }
-        result = validateTimeframe('1406', '1906', prj)
+        result = validateAsnTimeframe('1406', '1906', prj)
         self.assertEqual(result, 'Timeframe outside project timeframe!')
 
         prj['first_month'] = '1407'
-        result = validateTimeframe('1407', '1907', prj)
+        result = validateAsnTimeframe('1407', '1907', prj)
         self.assertEqual(result, 'Timeframe outside project timeframe!')
 
         prj['last_month'] = '1906'
-        result = validateTimeframe('1407', '1906', prj)
+        result = validateAsnTimeframe('1407', '1906', prj)
         self.assertIsNone(result)
 
     def testEmpName(self):

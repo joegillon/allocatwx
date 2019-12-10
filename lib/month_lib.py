@@ -47,3 +47,13 @@ def isInPrjSpan(prj, first_month, last_month):
     if first_month < prj['first_month']:
         return False
     return last_month <= prj['last_month']
+
+def getTimeframeEdges(list):
+    min = '9999'
+    max = '0000'
+    for item in list:
+        if item['first_month'] < min:
+            min = item['first_month']
+        if item['last_month'] > max:
+            max = item['last_month']
+    return min, max

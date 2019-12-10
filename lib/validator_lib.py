@@ -21,7 +21,7 @@ def validatePrjName(value, match=None):
         target = uil.set2compare(value)
         if target in match.values:
             if match.values[target] != match.id:
-                return 'Project name taken!'
+                return 'Project name not unique!'
 
     return None
 
@@ -34,12 +34,12 @@ def validatePrjNickname(value, match=None):
         target = uil.set2compare(value)
         if target in match.values:
             if match.id == 0 or match.values[target] != match.id:
-                return 'Project nickname taken!'
+                return 'Project nickname not unique!'
 
     return None
 
 
-def validateTimeframe(firstMonth, lastMonth, prj=None):
+def validateTimeframe(firstMonth, lastMonth):
     if not re.match(MONTH_PATTERN, firstMonth):
         return 'First month invalid!'
 
@@ -48,6 +48,13 @@ def validateTimeframe(firstMonth, lastMonth, prj=None):
 
     if not ml.isValidSpan(firstMonth, lastMonth):
         return 'First Month must precede Last Month!'
+
+    return None
+
+def validateAsnTimeframe(firstMonth, lastMonth, prj=None):
+    errMsg = validateTimeframe(firstMonth, lastMonth)
+    if errMsg:
+        return errMsg
 
     if prj:
         if not ml.isInPrjSpan(prj, firstMonth, lastMonth):
@@ -67,7 +74,7 @@ def validateEmpName(value, match=None):
         target = uil.set2compare(value)
         if target in match.names:
             if match.names[target] != match.id:
-                return 'Employee name taken!'
+                return 'Employee name not unique!'
 
     return None
 
@@ -90,8 +97,10 @@ def validateFte(value):
     return None
 
 
-def validateInvestigator(value):
-    pass
+def validateInvestigator(value, grade):
+    if value == 1 and int(grade) < 13:
+        return 'Investigator grade must be >= 13!'
+    return None
 
 
 def validateEffort(value):
