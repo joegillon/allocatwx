@@ -81,6 +81,7 @@ class EmpFormPanel(FormPanel):
 
         emp_id = emp['id'] if emp else 0
         emp_match = vl.EmployeeMatch(emp_id, gbl.empNames)
+
         errMsg = vl.validateEmpName(self.formData['name'], emp_match)
         if errMsg == '':
             vl.showErrMsg(self.txtName, errMsg)
@@ -100,3 +101,12 @@ class EmpFormPanel(FormPanel):
         if errMsg:
             vl.showErrMsg(self.txtFte, errMsg)
             return False
+
+        errMsg = vl.validateInvestigator(
+            self.formData['investigator'], self.formData['grade']
+        )
+        if errMsg:
+            vl.showErrMsg(self.chkInvestigator, errMsg)
+            return False
+
+        return True

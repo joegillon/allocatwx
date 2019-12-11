@@ -99,6 +99,7 @@ class PrjFormPanel(FormPanel):
 
         prj_id = prj['id'] if prj else 0
         prj_match = vl.ProjectMatch(prj_id, gbl.prjNames)
+
         errMsg = vl.validatePrjName(self.formData['name'], prj_match)
         if errMsg:
             vl.showErrMsg(self.txtName, errMsg)
@@ -116,5 +117,14 @@ class PrjFormPanel(FormPanel):
         if errMsg:
             vl.showErrMsg(self.txtFirstMonth, errMsg)
             return False
+
+        if prj and 'asns' in prj  and prj['asns']:
+            if self.formData['first_month'] < prj['first_month'] or \
+                self.formData['last_month'] > prj['last_month']:
+                min, max = ml.getTimeframeEdges(prj['asns'])
+                if self.formData['first_month'] < min or self.formData['last_month'] > max:
+                    errMsg = 'Assignment(s) out of new timeframe!'
+                    vl.showErrMsg(self.txtFirstMonth, errMsg)
+                    return False
 
         return True

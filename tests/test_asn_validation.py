@@ -1,4 +1,5 @@
 import unittest
+import globals as gbl
 
 errMsg = ''
 
@@ -33,6 +34,15 @@ class TestAsnValidation(unittest.TestCase):
             # vl.showErrMsg(self.txtEffort, errMsg)
             return False
 
+        errMsg = vl.validateAsnTimeframe(
+            self.formData['first_month'],
+            self.formData['last_month'],
+            gbl.prjRex[self.formData['project_id']]
+        )
+        if errMsg:
+            # vl.showErrMsg(self.txtFirstMonth, errMsg)
+            return False
+
         return True
 
     def setUp(self):
@@ -41,7 +51,13 @@ class TestAsnValidation(unittest.TestCase):
             'owner': '',
             'first_month': '',
             'last_month': '',
-            'effort': ''
+            'effort': '',
+            'project_id': 2
+        }
+        gbl.prjRex = {
+            1: {'id': 1},
+            2: {'id': 2, 'first_month': '1910', 'last_month': '2009'},
+            3: {'id': 3}
         }
 
     def testValidate(self):
@@ -173,6 +189,30 @@ class TestAsnValidation(unittest.TestCase):
         # Add the asn (requires an owner)
         self.formData['owner'] = 'Some project'
         self.cboOwner = DummyOwner('Project')
+        result = self.validate()
+        self.assertTrue(result)
+        self.assertIsNone(errMsg)
+
+        # Asn outside prj timeframe
+        self.formData['project_id'] = 2
+        self.formData['first_month'] = '1909'
+        self.formData['last_month'] = '2009'
+        result = self.validate()
+        self.assertFalse(result)
+        self.assertEqual(errMsg, 'Timeframe outside project timeframe!')
+
+        # Asn outside prj timeframe
+        self.formData['project_id'] = 2
+        self.formData['first_month'] = '1910'
+        self.formData['last_month'] = '2010'
+        result = self.validate()
+        self.assertFalse(result)
+        self.assertEqual(errMsg, 'Timeframe outside project timeframe!')
+
+        # Asn in prj timeframe
+        self.formData['project_id'] = 2
+        self.formData['first_month'] = '1910'
+        self.formData['last_month'] = '2009'
         result = self.validate()
         self.assertTrue(result)
         self.assertIsNone(errMsg)

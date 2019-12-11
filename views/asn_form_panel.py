@@ -159,6 +159,15 @@ class AsnFormPanel(wx.Panel):
             validators.showErrMsg(self.txtEffort, errMsg)
             return False
 
+        errMsg = vl.validateAsnTimeframe(
+            self.formData['first_month'],
+            self.formData['last_month'],
+            gbl.prjRex[self.formData['project_id']]
+        )
+        if errMsg:
+            vl.showErrMsg(self.txtFirstMonth, errMsg)
+            return False
+
         return True
 
     def processAsn(self):
