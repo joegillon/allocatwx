@@ -11,7 +11,7 @@ class DummyOwner(object):
 
 class TestAsnValidation(unittest.TestCase):
 
-    def validate(self, asn=None):
+    def validate(self):
         import lib.validator_lib as vl
 
         global errMsg

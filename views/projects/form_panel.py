@@ -94,7 +94,7 @@ class PrjFormPanel(FormPanel):
             'notes': self.txtNotes.GetValue()
         }
 
-    def validate(self, prj):
+    def validate(self, prj=None):
         import lib.validator_lib as vl
 
         prj_id = prj['id'] if prj else 0

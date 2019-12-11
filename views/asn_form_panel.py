@@ -139,24 +139,24 @@ class AsnFormPanel(wx.Panel):
         self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self):
-        import lib.validator_lib as validators
+        import lib.validator_lib as vl
 
         if self.cboOwner:
             if not self.formData['owner']:
                 errMsg = '%s is required!' % (self.cboOwner.name,)
-                validators.showErrMsg(self.cboOwner, errMsg)
+                vl.showErrMsg(self.cboOwner, errMsg)
                 return False
 
-        errMsg = validators.validateTimeframe(
+        errMsg = vl.validateTimeframe(
             self.formData['first_month'],
             self.formData['last_month'])
         if errMsg:
-            validators.showErrMsg(self.txtFirstMonth, errMsg)
+            vl.showErrMsg(self.txtFirstMonth, errMsg)
             return False
 
-        errMsg = validators.validateEffort(self.formData['effort'])
+        errMsg = vl.validateEffort(self.formData['effort'])
         if errMsg:
-            validators.showErrMsg(self.txtEffort, errMsg)
+            vl.showErrMsg(self.txtEffort, errMsg)
             return False
 
         errMsg = vl.validateAsnTimeframe(

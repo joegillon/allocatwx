@@ -76,7 +76,7 @@ class EmpFormPanel(FormPanel):
         self.formData['investigator'] = self.chkInvestigator.GetValue()
         self.formData['notes'] = self.txtNotes.GetValue()
 
-    def validate(self, emp):
+    def validate(self, emp=None):
         import lib.validator_lib as vl
 
         emp_id = emp['id'] if emp else 0
