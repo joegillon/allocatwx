@@ -35,7 +35,7 @@ class ValidationTestSuite(unittest.TestCase):
 
         # Project name must be unique
         result = validatePrjName('test  name 2', prj_match)
-        self.assertEqual(result, 'Project name taken!')
+        self.assertEqual(result, 'Project name not unique!')
 
         # Now we have a match but it's the current project
         result = validatePrjName('test  name 3', prj_match)
@@ -55,7 +55,7 @@ class ValidationTestSuite(unittest.TestCase):
         self.assertEqual(result, 'Project nickname required!')
 
         result = validatePrjNickname('test  nickname 1', prj_match)
-        self.assertEqual(result, 'Project nickname taken!')
+        self.assertEqual(result, 'Project nickname not unique!')
 
         result = validatePrjNickname('test  nickname 3', prj_match)
         self.assertIsNone(result)
@@ -151,10 +151,10 @@ class ValidationTestSuite(unittest.TestCase):
         self.assertIsNone(result)
 
         result = validateEmpName('marx,harpo', emp_match)
-        self.assertEqual(result, 'Employee name taken!')
+        self.assertEqual(result, 'Employee name not unique!')
 
         result = validateEmpName('name-hyphenated,bozo', emp_match)
-        self.assertEqual(result, 'Employee name taken!')
+        self.assertEqual(result, 'Employee name not unique!')
 
         result = validateEmpName('marx, zeppo', emp_match)
         self.assertIsNone(result)
