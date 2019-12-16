@@ -10,6 +10,7 @@ class PrjFormPanel(FormPanel):
     def setProps(self):
         self.ownerName = 'Project'
         self.dal = prj_dal
+        self.rex = gbl.prjRex
 
         self.txtName = None
         self.txtNickname = None
@@ -60,13 +61,27 @@ class PrjFormPanel(FormPanel):
 
         lblPI = wx.StaticText(panel, wx.ID_ANY, 'PI:')
         pis = [rec for rec in gbl.empRex.values() if rec['investigator'] == 1]
-        self.cboPI = uil.ObjComboBox(panel, pis, 'name', 'Employee', style=wx.CB_READONLY)
+        self.cboPI = uil.ObjComboBox(panel,
+                                     pis,
+                                     'name',
+                                     'Employee',
+                                     style=wx.CB_READONLY)
+        value = self.ownerRec['PiName'] \
+            if self.ownerRec and self.ownerRec['PI'] else ''
+        self.cboPI.SetValue(value)
         personsLayout.Add(lblPI, 0, wx.ALL, 5)
         personsLayout.Add(self.cboPI, 0, wx.ALL, 5)
 
         lblPM = wx.StaticText(panel, wx.ID_ANY, 'PM:')
         pms = [rec for rec in gbl.empRex.values() if rec['investigator'] == 0]
-        self.cboPM = uil.ObjComboBox(panel, pms, 'name', 'Employee', style=wx.CB_READONLY)
+        self.cboPM = uil.ObjComboBox(panel,
+                                     pms,
+                                     'name',
+                                     'Employee',
+                                     style=wx.CB_READONLY)
+        value = self.ownerRec['PmName'] \
+            if self.ownerRec and self.ownerRec['PM'] else ''
+        self.cboPM.SetValue(value)
         personsLayout.Add(lblPM, 0, wx.ALL, 5)
         personsLayout.Add(self.cboPM, 0, wx.ALL, 5)
 
@@ -128,3 +143,9 @@ class PrjFormPanel(FormPanel):
                     return False
 
         return True
+
+    def supplementRec(self):
+        if self.ownerRec['PI']:
+            self.ownerRec['PiName'] = gbl.empRex[self.ownerRec['PI']]['name']
+        if self.ownerRec['PM']:
+            self.ownerRec['PmName'] = gbl.empRex[self.ownerRec['PM']]['name']

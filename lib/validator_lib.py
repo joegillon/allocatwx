@@ -80,19 +80,19 @@ def validateEmpName(value, match=None):
 
 
 def validateGrade(value):
-    if value and not re.match(SCALE_15_PATTERN, value):
+    if not re.match(SCALE_15_PATTERN, value):
         return 'Grade must be number between 0-15!'
     return None
 
 
 def validateStep(value):
-    if value and not re.match(SCALE_15_PATTERN, value):
+    if not re.match(SCALE_15_PATTERN, value):
         return 'Step must be number between 0-15!'
     return None
 
 
 def validateFte(value):
-    if value and not re.match(SCALE_100_PATTERN, value):
+    if not re.match(SCALE_100_PATTERN, value):
         return 'FTE must be number between 0-100!'
     return None
 

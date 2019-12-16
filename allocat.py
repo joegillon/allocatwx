@@ -36,6 +36,7 @@ if __name__ == '__main__':
 
     app = wx.App()
 
+    # Set the font for the widest text calculations
     font = wx.Font(9,
                    wx.FONTFAMILY_DEFAULT,
                    wx.FONTSTYLE_NORMAL,

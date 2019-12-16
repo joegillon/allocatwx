@@ -18,7 +18,7 @@ class TestAsnValidation(unittest.TestCase):
 
         if self.cboOwner:
             if not self.formData['owner']:
-                errMsg = '%s is required!' % (self.cboOwner.name,)
+                errMsg = '%s is required!' % self.cboOwner.name
                 # vl.showErrMsg(self.cboOwner, errMsg)
                 return False
 

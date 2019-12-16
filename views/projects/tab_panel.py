@@ -22,7 +22,6 @@ class PrjTabPanel(TabPanel):
             ColumnDefn('Name', 'left', gbl.widestPrjName, 'name'),
             ColumnDefn('Notes', 'left', 0, 'notes')
         ])
-        self.theList.SetObjects(list(self.rex.values()))
 
-    def getAsnsDlg(self, ownerId=None):
+    def getDetailDlg(self, ownerId=None):
         return PrjDetailDlg(self, -1, 'Project Details', ownerId)

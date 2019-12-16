@@ -1,3 +1,4 @@
+import wx
 from ObjectListView import ColumnDefn
 import globals as gbl
 import lib.ui_lib as uil
@@ -15,14 +16,13 @@ class EmpTabPanel(TabPanel):
     def buildList(self):
         self.theList.SetColumns([
             ColumnDefn('Name', 'left', gbl.widestEmpName, 'name'),
-            ColumnDefn('Grade', 'right', 105, 'grade'),
-            ColumnDefn('Step', 'right', 100, 'step'),
-            ColumnDefn('FTE', 'right', 100, 'fte'),
-            ColumnDefn('Notes', 'left', 0, 'notes'),
-            ColumnDefn('Investigator', 'right', 120, 'investigator',
-                           stringConverter=uil.toYN)
+            ColumnDefn('Grade', 'right', wx.LIST_AUTOSIZE_USEHEADER, 'grade'),
+            ColumnDefn('Step', 'right', wx.LIST_AUTOSIZE_USEHEADER, 'step'),
+            ColumnDefn('FTE', 'right', wx.LIST_AUTOSIZE_USEHEADER, 'fte'),
+            ColumnDefn('Investigator', 'right', wx.LIST_AUTOSIZE_USEHEADER, 'investigator',
+                           stringConverter=uil.toYN),
+            ColumnDefn('Notes', 'left', 400, 'notes'),
         ])
-        self.theList.SetObjects(list(self.rex.values()))
 
-    def getAsnsDlg(self, ownerId=None):
+    def getDetailDlg(self, ownerId=None):
         return EmpDetailDlg(self, -1, 'Employee Details', ownerId)

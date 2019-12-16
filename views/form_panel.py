@@ -14,6 +14,7 @@ class FormPanel(wx.Panel):
         self.ownerRec = ownerRec
         self.formData = {}
         self.dal = None
+        self.rex = None
 
         self.setProps()
 
@@ -71,24 +72,72 @@ class FormPanel(wx.Panel):
                                wx.YES_NO | wx.ICON_QUESTION)
         reply = dlg.ShowModal()
         if reply == wx.ID_YES:
-            result = self.dal.delete(Dao(), [self.ownerRec['id']])
-            print(result)
+            if self.dropRec():
+                self.Parent.Close()
 
     def onSaveClick(self, event):
         self.getFormData()
 
         if self.validate(self.ownerRec):
             if self.ownerRec is None:
-                result = self.dal.add(Dao(), self.formData)
-                print(result)
+                if self.addRec():
+                    # self.Parent.dtlPanel.activateAddBtn()
+                     pass
             else:
-                result = self.dal.update(Dao(), self.ownerRec['id'], self.formData)
-                print(result)
-            self.Parent.dtlPanel.activateAddBtn()
-            self.Parent.Close()
+                self.updateRec()
 
     def getFormData(self):
         raise NotImplementedError("Please Implement this method")
 
     def validate(self, ownerRec):
         raise NotImplementedError("Please Implement this method")
+
+    def addRec(self):
+        try:
+            rec_id = self.dal.add(Dao(), self.formData)
+        except Exception as ex:
+            wx.MessageBox('Error adding %s: %s' % (self.ownerName, str(ex)))
+            return False
+        self.ownerRec = self.formData.copy()
+        self.ownerRec['id'] = rec_id
+        self.supplementRec()
+        self.ownerRec['active'] = 1
+        self.updateMyRex()
+        wx.MessageBox('%s added!' % self.ownerName)
+        return True
+
+    def updateRec(self):
+        try:
+            result = self.dal.update(Dao(), self.ownerRec, self.formData)
+        except Exception as ex:
+            wx.MessageBox('Error updating %s: %s' % (self.ownerName, str(ex)))
+            return
+        if result != 1:
+            wx.MessageBox('Unanticipated error updating %s' % self.ownerName)
+            return
+        for fld, value in self.formData.items():
+            self.ownerRec[fld] = value
+        self.supplementRec()
+        self.updateMyRex()
+        wx.MessageBox('%s updated!' % self.ownerName)
+
+    def supplementRec(self):
+        raise NotImplementedError("Please Implement this method")
+
+    def updateMyRex(self):
+        self.rex[self.ownerRec['id']] = self.ownerRec
+        self.GrandParent.loadList(self.rex.values())
+
+    def dropRec(self):
+        try:
+            result = self.dal.delete(Dao(), [self.ownerRec['id']])
+        except Exception as ex:
+            wx.MessageBox('Error dropping %s: %s' % (self.ownerName, str(ex)))
+            return False
+        if result != 1:
+            wx.MessageBox('Unanticipated error dropping %s' % self.ownerName)
+            return False
+        del self.rex[self.ownerRec['id']]
+        self.GrandParent.loadList(self.rex.values())
+        wx.MessageBox('%s dropped!' % self.ownerName)
+        return True

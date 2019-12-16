@@ -80,7 +80,7 @@ class TabPanel(wx.Panel):
         layout = wx.BoxSizer(wx.HORIZONTAL)
 
         self.theList = olv.ObjectListView(panel, wx.ID_ANY,
-                                          size=wx.Size(-1, 550),
+                                          size=wx.Size(-1, 600),
                                           style=wx.LC_REPORT | wx.SUNKEN_BORDER)
 
         self.buildList()
@@ -94,17 +94,23 @@ class TabPanel(wx.Panel):
 
         panel.SetSizer(layout)
 
+        self.loadList(list(self.rex.values()))
+
         return panel
 
     def buildList(self):
         raise NotImplementedError("Please Implement this method")
 
+    def loadList(self, data):
+        sorted_data = sorted(data, key=lambda i: i[self.srchFld.lower()])
+        self.theList.SetObjects(sorted_data)
+
     def onDblClick(self, event):
         owner = event.EventObject.GetSelectedObject()
-        dlg = self.getAsnsDlg(owner['id'])
+        dlg = self.getDetailDlg(owner['id'])
         dlg.ShowModal()
 
-    def getAsnsDlg(self, ownerId=None):
+    def getDetailDlg(self, ownerId=None):
         raise NotImplementedError("Please Implement this method")
 
     def onRightClick(self, event):
@@ -112,7 +118,7 @@ class TabPanel(wx.Panel):
         wx.MessageBox(obj['notes'], 'Notes', wx.OK | wx.ICON_INFORMATION)
 
     def onAddBtnClick(self, event):
-        dlg = self.getAsnsDlg()
+        dlg = self.getDetailDlg()
         dlg.ShowModal()
 
     def onDropBtnClick(self, event):

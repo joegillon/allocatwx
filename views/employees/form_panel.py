@@ -10,6 +10,7 @@ class EmpFormPanel(FormPanel):
     def setProps(self):
         self.ownerName = 'Employee'
         self.dal = emp_dal
+        self.rex = gbl.empRex
 
         self.txtName = None
         self.txtGrade = None
@@ -19,6 +20,8 @@ class EmpFormPanel(FormPanel):
         self.txtNotes = None
 
     def getLayout(self, panel, emp):
+        import wx.lib.masked as masked
+
         layout = wx.BoxSizer(wx.VERTICAL)
 
         nameLayout = wx.BoxSizer(wx.HORIZONTAL)
@@ -26,33 +29,41 @@ class EmpFormPanel(FormPanel):
         self.txtName = wx.TextCtrl(panel, wx.ID_ANY,
                                    uil.displayValue(emp, 'name'),
                                    size=(500, -1))
+        self.txtName.Bind(wx.EVT_CHAR, self.onNameChar)
         nameLayout.Add(lblName, 0, wx.ALL, 5)
         nameLayout.Add(self.txtName, 0, wx.ALL | wx.EXPAND, 5)
         layout.Add(nameLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         gsfLayout = wx.BoxSizer(wx.HORIZONTAL)
         lblGrade = wx.StaticText(panel, wx.ID_ANY, 'Grade: ')
-        self.txtGrade = wx.TextCtrl(panel, wx.ID_ANY,
-                                    str(uil.displayValue(emp, 'grade')),
-                                    size=(50, -1))
+        self.txtGrade = masked.TextCtrl(panel, wx.ID_ANY,
+                                        mask='##',
+                                        size=(50, -1))
+        self.txtGrade.SetValue(str(uil.displayValue(emp, 'grade')))
         gsfLayout.Add(lblGrade, 0, wx.ALL, 5)
         gsfLayout.Add(self.txtGrade, 0, wx.ALL, 5)
         layout.Add(gsfLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         lblStep = wx.StaticText(panel, wx.ID_ANY, 'Step: ')
-        self.txtStep = wx.TextCtrl(panel, wx.ID_ANY,
-                                   str(uil.displayValue(emp, 'step')), size=(50, -1))
+        self.txtStep = masked.TextCtrl(panel, wx.ID_ANY,
+                                        mask='##',
+                                        size=(50, -1))
+        self.txtStep.SetValue(str(uil.displayValue(emp, 'step')))
         gsfLayout.Add(lblStep, 0, wx.ALL, 5)
         gsfLayout.Add(self.txtStep, 0, wx.ALL, 5)
 
         lblFte = wx.StaticText(panel, wx.ID_ANY, 'FTE: ')
-        self.txtFte = wx.TextCtrl(panel, wx.ID_ANY,
-                                  str(uil.displayValue(emp, 'fte')), size=(50, -1))
+        self.txtFte = masked.TextCtrl(panel, wx.ID_ANY,
+                                        mask='###',
+                                        size=(50, -1))
+        self.txtFte.SetValue(str(uil.displayValue(emp, 'fte')))
         gsfLayout.Add(lblFte, 0, wx.ALL, 5)
         gsfLayout.Add(self.txtFte, 0, wx.ALL, 5)
 
         lblInvestigator = wx.StaticText(panel, wx.ID_ANY, 'Investigator:')
         self.chkInvestigator = wx.CheckBox(panel, wx.ID_ANY)
+        if emp:
+            self.chkInvestigator.SetValue(emp['investigator'])
         gsfLayout.Add(lblInvestigator, 0, wx.ALL, 5)
         gsfLayout.Add(self.chkInvestigator, 0, wx.ALL, 5)
         layout.Add(gsfLayout, 0, wx.ALL, 5)
@@ -68,24 +79,52 @@ class EmpFormPanel(FormPanel):
 
         return layout
 
+    def onNameChar(self, event):
+        import re
+
+        pattern = "[A-Z'\-, ]"
+        c = chr(event.KeyCode).upper()
+        if c == '\b':
+            event.Skip()
+            return
+        if re.match(pattern, c):
+            event.EventObject.AppendText(c)
+
     def getFormData(self):
         self.formData['name'] = self.txtName.GetValue()
-        self.formData['grade'] = self.txtGrade.GetValue()
-        self.formData['step'] = self.txtStep.GetValue()
-        self.formData['fte'] = self.txtFte.GetValue()
+        self.formData['grade'] = self.txtGrade.GetValue().strip()
+        self.formData['step'] = self.txtStep.GetValue().strip()
+        self.formData['fte'] = self.txtFte.GetValue().strip()
         self.formData['investigator'] = self.chkInvestigator.GetValue()
         self.formData['notes'] = self.txtNotes.GetValue()
 
     def validate(self, emp=None):
         import lib.validator_lib as vl
+        from fuzzywuzzy import process
 
         emp_id = emp['id'] if emp else 0
         emp_match = vl.EmployeeMatch(emp_id, gbl.empNames)
 
         errMsg = vl.validateEmpName(self.formData['name'], emp_match)
-        if errMsg == '':
+        if errMsg:
             vl.showErrMsg(self.txtName, errMsg)
             return False
+
+        possible = process.extractOne(self.formData['name'], list(emp_match.names.keys()))
+        if possible[1] >= 90:
+            possibleEmp = gbl.empRex[emp_match.names[possible[0]]]
+            if possibleEmp['id'] != emp_match.id:
+                msg = '{0}% match with {1}. Continue?'.format(
+                    possible[1],
+                    possibleEmp['name']
+                )
+                dlg = wx.MessageDialog(self, msg,
+                                       'Just making sure',
+                                       wx.YES_NO | wx.ICON_QUESTION)
+                reply = dlg.ShowModal()
+                if reply != wx.ID_YES:
+                    self.txtName.SetFocus()
+                    return
 
         errMsg = vl.validateGrade(self.formData['grade'])
         if errMsg:
@@ -110,3 +149,6 @@ class EmpFormPanel(FormPanel):
             return False
 
         return True
+
+    def supplementRec(self):
+        pass

@@ -1,6 +1,7 @@
 import wx
 import globals as gbl
 import lib.ui_lib as uil
+import lib.month_lib as ml
 
 
 class AsnFormPanel(wx.Panel):
@@ -23,7 +24,7 @@ class AsnFormPanel(wx.Panel):
         self.txtLastMonth = None
         self.txtEffort = None
         self.txtNotes = None
-        self.formData = None
+        self.formData = {}
 
         tbPanel = self.buildToolbarPanel()
         frmPanel = self.buildFormPanel()
@@ -70,7 +71,7 @@ class AsnFormPanel(wx.Panel):
         layout.Add(ownerLayout, 0, wx.ALL | wx.EXPAND, 5)
 
         assigneeLayout = wx.BoxSizer(wx.HORIZONTAL)
-        value = '%s: ' % (self.assigneeName,)
+        value = '%s: ' % self.assigneeName
         if self.asn:
             value += self.asn[self.assigneeNameFld]
         else:
@@ -133,8 +134,8 @@ class AsnFormPanel(wx.Panel):
 
     def getFormData(self):
         self.formData['owner'] = self.cboOwner.GetValue()
-        self.formData['first_month'] = self.txtFirstMonth.GetValue()
-        self.formData['last_month'] = self.txtLastMonth.GetValue()
+        self.formData['first_month'] = ml.uglify(self.txtFirstMonth.GetValue())
+        self.formData['last_month'] = ml.uglify(self.txtLastMonth.GetValue())
         self.formData['effort'] = self.txtEffort.GetValue()
         self.formData['notes'] = self.txtNotes.GetValue()
 
@@ -143,7 +144,7 @@ class AsnFormPanel(wx.Panel):
 
         if self.cboOwner:
             if not self.formData['owner']:
-                errMsg = '%s is required!' % (self.cboOwner.name,)
+                errMsg = '%s is required!' % self.cboOwner.Name
                 vl.showErrMsg(self.cboOwner, errMsg)
                 return False
 

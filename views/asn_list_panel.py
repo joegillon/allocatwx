@@ -19,10 +19,9 @@ class AsnListPanel(wx.Panel):
         self.theList = None
         self.op = None
         self.addBtn = None
+        self.asns = None
 
         self.setProps(ownerId)
-
-        self.asns = self.dal.getAsns(Dao(), self.ownerId)
 
         tbPanel = self.buildToolbarPanel()
         lstPanel = self.buildListPanel()
